@@ -1,26 +1,301 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Ensure md:hidden works correctly in Tailwind v4 */
+@media (min-width: 768px) {
+  .md\:hidden {
+    display: none !important;
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   DeMeloApps — Global Styles & Design System
+   
+   Architecture:
+   1. @theme inline — Tailwind v4 design tokens (generates utilities)
+   2. :root — CSS custom properties (gradients, alpha colors, etc.)
+   3. Base styles — html/body resets
+   4. Utility classes — reusable visual patterns
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────
+   1. TAILWIND THEME TOKENS
+   These generate utility classes: bg-bg-primary, text-text-secondary, etc.
+   ───────────────────────────────────────────────────────────────── */
+
+@theme inline {
+  /* ── Fonts (CSS variables injected by next/font via layout.tsx) ── */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* ── Colors: Background layers ── */
+  --color-bg-primary: #050505;
+  --color-bg-secondary: #0a0a0a;
+  --color-bg-tertiary: #111111;
+  --color-bg-elevated: #161616;
+  --color-bg-surface: #1a1a1a;
+
+  /* ── Colors: Foreground / Text ── */
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: #a1a1aa;
+  --color-text-tertiary: #71717a;
+  --color-text-muted: #52525b;
+  --color-text-inverse: #050505;
+
+  /* ── Colors: Accent ── */
+  --color-accent: #6366f1;
+  --color-accent-hover: #818cf8;
+  --color-accent-secondary: #8b5cf6;
+  --color-accent-secondary-hover: #a78bfa;
+
+  /* ── Colors: Semantic ── */
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* ── Shadows: Elevation ── */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.40);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.50), 0 1px 2px -1px rgba(0, 0, 0, 0.50);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.50), 0 2px 4px -2px rgba(0, 0, 0, 0.50);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.50), 0 4px 6px -4px rgba(0, 0, 0, 0.50);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.50), 0 8px 10px -6px rgba(0, 0, 0, 0.50);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.70);
+
+  /* ── Shadows: Glow ── */
+  --shadow-glow-sm: 0 0 20px -5px rgba(99, 102, 241, 0.40);
+  --shadow-glow-md: 0 0 40px -10px rgba(99, 102, 241, 0.40);
+  --shadow-glow-lg: 0 0 60px -12px rgba(99, 102, 241, 0.40);
+  --shadow-glow-xl: 0 0 80px -15px rgba(99, 102, 241, 0.50);
+  --shadow-glow-violet: 0 0 60px -12px rgba(139, 92, 246, 0.40);
+  --shadow-glow-ambient: 0 0 80px -20px rgba(99, 102, 241, 0.20), 0 0 60px -15px rgba(139, 92, 246, 0.15);
+
+  /* ── Border Radius ── */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+
+  /* ── Easing ── */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   2. CSS CUSTOM PROPERTIES
+   Values that can't be expressed as Tailwind theme tokens
+   (gradients, alpha borders, complex values).
+   ───────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Borders (alpha values) ── */
+  --border-default: rgba(255, 255, 255, 0.06);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-medium: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-focus: rgba(99, 102, 241, 0.50);
+
+  /* ── Accent muted ── */
+  --accent-muted: rgba(99, 102, 241, 0.15);
+  --accent-secondary-muted: rgba(139, 92, 246, 0.15);
+
+  /* ── Overlay ── */
+  --bg-overlay: rgba(0, 0, 0, 0.80);
+
+  /* ── Gradients ── */
+  --gradient-brand: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  --gradient-brand-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+  --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
+  --gradient-mesh: radial-gradient(at 27% 37%, rgba(99, 102, 241, 0.08) 0%, transparent 50%), radial-gradient(at 97% 21%, rgba(139, 92, 246, 0.06) 0%, transparent 50%), radial-gradient(at 52% 99%, rgba(168, 85, 247, 0.04) 0%, transparent 50%);
+  --gradient-card-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 60%);
+  --gradient-card-border: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%);
+  --gradient-text-brand: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  --gradient-text-shine: linear-gradient(110deg, #f5f5f7 0%, #a1a1aa 45%, #f5f5f7 55%, #a1a1aa 100%);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   3. BASE STYLES
+   ───────────────────────────────────────────────────────────────── */
+
+html {
+  color-scheme: dark;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(99, 102, 241, 0.30);
+  color: #f5f5f7;
+}
+
+/* Smooth scroll (respects reduced motion) */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   4. UTILITY CLASSES
+   Reusable visual patterns used across components.
+   ───────────────────────────────────────────────────────────────── */
+
+/* ── Text Gradients ── */
+.text-gradient-brand {
+  background: var(--gradient-text-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-shine {
+  background: var(--gradient-text-shine);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Glassmorphism ── */
+.glass-subtle {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.glass-dark {
+  background: rgba(5, 5, 5, 0.80);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-accent {
+  background: rgba(99, 102, 241, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+}
+
+/* ── Gradient Backgrounds ── */
+.bg-gradient-brand { background: var(--gradient-brand); }
+.bg-gradient-brand-subtle { background: var(--gradient-brand-subtle); }
+.bg-gradient-hero { background: var(--gradient-hero); }
+.bg-gradient-mesh { background: var(--gradient-mesh); }
+.bg-gradient-card-shine { background: var(--gradient-card-shine); }
+
+/* ── Border Gradient (pseudo-element) ── */
+.border-gradient {
+  position: relative;
+  border: none;
+}
+.border-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gradient-card-border);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ── Inner Light (top highlight) ── */
+.inner-light {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+}
+
+/* ── Background Patterns ── */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+.bg-grid-sm {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.bg-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── Noise Texture Overlay ── */
+.noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* ── Focus Ring ── */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* ── Hero mobile overrides ── */
+@media (max-width: 640px) {
+  .hero-subtitle {
+    max-width: 250px !important;
+  }
+
+  /* CTA buttons: 75% min-width on mobile */
+  .hero-cta-primary,
+  .hero-cta-secondary {
+    min-width: 75% !important;
+    width: 75% !important;
+  }
 }
