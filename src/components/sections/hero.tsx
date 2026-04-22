@@ -5,72 +5,79 @@ import { motion, AnimatePresence } from "framer-motion";
 
 /* ─── Config ─────────────────────────────────────────────────────── */
 const PHRASES = ["marketing teams", "sales pipelines", "business operations"];
-const PHRASE_DURATION = 2600;
-const TRANSITION_MS = 480;
+const PHRASE_DURATION = 2800;
+const TRANSITION_MS = 500;
 
-/* ─── Metric pool — 8 rotating business outcomes ─────────────────── */
+/* ─── Metric pool ────────────────────────────────────────────────── */
 const METRIC_POOL = [
-  { value: 32,  unit: "%",  prefix: "+", label: "conversion rate",       icon: "trend"  },
-  { value: 41,  unit: "%",  prefix: "+", label: "lead response speed",   icon: "pulse"  },
-  { value: 18,  unit: "h",  prefix: "−", label: "manual work / week",    icon: "status" },
-  { value: 78,  unit: "%",  prefix: "",  label: "tasks automated",       icon: "bar"    },
-  { value: 2.4, unit: "x",  prefix: "+", label: "qualified leads",       icon: "trend"  },
-  { value: 27,  unit: "%",  prefix: "+", label: "pipeline value",        icon: "pulse"  },
-  { value: 35,  unit: "%",  prefix: "+", label: "content performance",   icon: "bar"    },
-  { value: 22,  unit: "%",  prefix: "−", label: "operational overhead",  icon: "status" },
+  { value: 32,  unit: "%",  prefix: "+", label: "conversion rate",      icon: "trend"  },
+  { value: 41,  unit: "%",  prefix: "+", label: "lead response speed",  icon: "pulse"  },
+  { value: 18,  unit: "h",  prefix: "−", label: "manual work / week",   icon: "status" },
+  { value: 78,  unit: "%",  prefix: "",  label: "tasks automated",      icon: "bar"    },
+  { value: 2.4, unit: "x",  prefix: "+", label: "qualified leads",      icon: "trend"  },
+  { value: 27,  unit: "%",  prefix: "+", label: "pipeline value",       icon: "pulse"  },
+  { value: 35,  unit: "%",  prefix: "+", label: "content performance",  icon: "bar"    },
+  { value: 22,  unit: "%",  prefix: "−", label: "operational overhead", icon: "status" },
 ];
 
-/* ─── Panel layout ───────────────────────────────────────────────── */
-// 8 panels on desktop (one per metric), 4 on mobile
-// cx/cy: center anchor point (% of the 1000px-wide content area)
-// orbitR: orbit radius in px, orbitDur: seconds per full orbit, orbitPhase: 0-1 start offset
-const PANEL_SLOTS_DESKTOP = [
-  { id: "s1", cx: "8%",  cy: "38%", orbitR: 18, orbitDur: 22.0, orbitPhase: 0.00, parallaxFactor: 0.55, breatheOffset: 0.0, metricOffset: 0 },
-  { id: "s2", cx: "82%", cy: "26%", orbitR: 14, orbitDur: 26.0, orbitPhase: 0.25, parallaxFactor: 0.75, breatheOffset: 2.1, metricOffset: 1 },
-  { id: "s3", cx: "84%", cy: "50%", orbitR: 16, orbitDur: 19.5, orbitPhase: 0.50, parallaxFactor: 0.45, breatheOffset: 4.3, metricOffset: 2 },
-  { id: "s4", cx: "6%",  cy: "60%", orbitR: 20, orbitDur: 24.0, orbitPhase: 0.75, parallaxFactor: 0.65, breatheOffset: 1.5, metricOffset: 3 },
-  { id: "s5", cx: "24%", cy: "16%", orbitR: 15, orbitDur: 21.0, orbitPhase: 0.12, parallaxFactor: 0.40, breatheOffset: 3.2, metricOffset: 4 },
-  { id: "s6", cx: "66%", cy: "12%", orbitR: 13, orbitDur: 28.0, orbitPhase: 0.62, parallaxFactor: 0.60, breatheOffset: 5.1, metricOffset: 5 },
-  { id: "s7", cx: "64%", cy: "68%", orbitR: 17, orbitDur: 23.0, orbitPhase: 0.38, parallaxFactor: 0.50, breatheOffset: 0.8, metricOffset: 6 },
-  { id: "s8", cx: "22%", cy: "72%", orbitR: 19, orbitDur: 20.5, orbitPhase: 0.88, parallaxFactor: 0.70, breatheOffset: 2.7, metricOffset: 7 },
+/* ─── Orbital card layout ────────────────────────────────────────── */
+// Cards orbit around the hero content block.
+// Positions are % of the 1000px content container.
+// The hero text sits roughly in the horizontal center (30%–70%) and
+// vertically from ~15% to ~65%. Cards are placed around that zone.
+//
+// Desktop: 8 cards in a loose elliptical orbit
+// Each card has a slow individual drift (orbitR px, orbitDur seconds)
+const CARDS_DESKTOP = [
+  // Upper-left cluster
+  { id: "c1", cx: "5%",  cy: "18%", orbitR: 12, orbitDur: 18, orbitPhase: 0.00, pFactor: 0.50, bOff: 0.0, mOff: 0 },
+  { id: "c2", cx: "14%", cy: "52%", orbitR: 10, orbitDur: 22, orbitPhase: 0.60, pFactor: 0.60, bOff: 1.8, mOff: 3 },
+  // Upper-right cluster
+  { id: "c3", cx: "76%", cy: "14%", orbitR: 11, orbitDur: 20, orbitPhase: 0.25, pFactor: 0.55, bOff: 3.2, mOff: 1 },
+  { id: "c4", cx: "80%", cy: "44%", orbitR: 13, orbitDur: 24, orbitPhase: 0.75, pFactor: 0.45, bOff: 5.0, mOff: 2 },
+  // Lower-left cluster
+  { id: "c5", cx: "4%",  cy: "72%", orbitR: 10, orbitDur: 19, orbitPhase: 0.40, pFactor: 0.65, bOff: 2.4, mOff: 4 },
+  { id: "c6", cx: "20%", cy: "82%", orbitR: 12, orbitDur: 23, orbitPhase: 0.15, pFactor: 0.40, bOff: 4.1, mOff: 7 },
+  // Lower-right cluster
+  { id: "c7", cx: "72%", cy: "76%", orbitR: 11, orbitDur: 21, orbitPhase: 0.55, pFactor: 0.55, bOff: 0.9, mOff: 5 },
+  { id: "c8", cx: "82%", cy: "64%", orbitR: 9,  orbitDur: 17, orbitPhase: 0.85, pFactor: 0.70, bOff: 3.6, mOff: 6 },
 ];
 
-const PANEL_SLOTS_MOBILE = [
-  { id: "s1", cx: "6%",  cy: "32%", orbitR: 8, orbitDur: 22.0, orbitPhase: 0.00, parallaxFactor: 0, breatheOffset: 0.0, metricOffset: 0 },
-  { id: "s2", cx: "70%", cy: "26%", orbitR: 8, orbitDur: 26.0, orbitPhase: 0.25, parallaxFactor: 0, breatheOffset: 2.1, metricOffset: 1 },
-  { id: "s3", cx: "72%", cy: "48%", orbitR: 8, orbitDur: 19.5, orbitPhase: 0.50, parallaxFactor: 0, breatheOffset: 4.3, metricOffset: 2 },
-  { id: "s4", cx: "4%",  cy: "56%", orbitR: 8, orbitDur: 24.0, orbitPhase: 0.75, parallaxFactor: 0, breatheOffset: 1.5, metricOffset: 3 },
+// Mobile: 4 cards, placed at the sides so they don't overlap the text
+const CARDS_MOBILE = [
+  { id: "m1", cx: "1%",  cy: "20%", orbitR: 5, orbitDur: 20, orbitPhase: 0.00, pFactor: 0, bOff: 0.0, mOff: 0 },
+  { id: "m2", cx: "68%", cy: "16%", orbitR: 5, orbitDur: 24, orbitPhase: 0.25, pFactor: 0, bOff: 2.1, mOff: 1 },
+  { id: "m3", cx: "1%",  cy: "56%", orbitR: 5, orbitDur: 18, orbitPhase: 0.50, pFactor: 0, bOff: 4.3, mOff: 3 },
+  { id: "m4", cx: "70%", cy: "50%", orbitR: 5, orbitDur: 22, orbitPhase: 0.75, pFactor: 0, bOff: 1.5, mOff: 2 },
 ];
 
-/* ─── Metric rotation interval (ms) ─────────────────────────────── */
-const METRIC_ROTATE_MS = 4000;
-
-/* ─── Connections — derived from panel anchor points ─────────────── */
-// Panel anchors in SVG coords (900×860 viewBox, matching the 1000px content area):
-//   s1: cx=8%→72,   cy=38%→327   s2: cx=82%→738, cy=26%→224
-//   s3: cx=84%→756, cy=50%→430   s4: cx=6%→54,   cy=60%→516
-//   s5: cx=24%→216, cy=16%→138   s6: cx=66%→594, cy=12%→103
-//   s7: cx=64%→576, cy=68%→585   s8: cx=22%→198, cy=72%→619
-const CONNECTIONS_DESKTOP = [
-  { id: "c1", x0: 72,  y0: 327, x1: 738, y1: 224, cpx: 400, cpy: 120, dur: 9.2,  phase: 0.00, breatheDur: 7.0, breathePhase: 0.00 },
-  { id: "c2", x0: 738, y0: 224, x1: 756, y1: 430, cpx: 850, cpy: 327, dur: 7.8,  phase: 0.33, breatheDur: 8.5, breathePhase: 0.40 },
-  { id: "c3", x0: 54,  y0: 516, x1: 72,  y1: 327, cpx: -30, cpy: 420, dur: 8.6,  phase: 0.67, breatheDur: 6.5, breathePhase: 0.70 },
-  { id: "c4", x0: 216, y0: 138, x1: 594, y1: 103, cpx: 405, cpy:  40, dur: 10.4, phase: 0.15, breatheDur: 9.0, breathePhase: 0.20 },
-  { id: "c5", x0: 576, y0: 585, x1: 198, y1: 619, cpx: 387, cpy: 700, dur: 11.0, phase: 0.50, breatheDur: 7.5, breathePhase: 0.60 },
+/* ─── Connection paths ───────────────────────────────────────────── */
+// SVG 900×860 viewBox. Card anchor SVG coords (cx% × 900, cy% × 860):
+//   c1: (45,155)   c2: (126,447)  c3: (684,120)  c4: (720,378)
+//   c5: (36,619)   c6: (180,705)  c7: (648,654)  c8: (738,550)
+// Connections form a loose ring around the center (450,430)
+const CONNS_DESKTOP = [
+  // c1 → c3: top arc
+  { id: "k1", x0:  45, y0: 155, x1: 684, y1: 120, cpx: 360, cpy:  30, dur: 10.0, phase: 0.00, bDur: 8.0, bPh: 0.00 },
+  // c3 → c4: right drop
+  { id: "k2", x0: 684, y0: 120, x1: 720, y1: 378, cpx: 820, cpy: 249, dur:  8.5, phase: 0.20, bDur: 7.0, bPh: 0.30 },
+  // c4 → c8: right lower
+  { id: "k3", x0: 720, y0: 378, x1: 738, y1: 550, cpx: 840, cpy: 464, dur:  7.0, phase: 0.40, bDur: 9.0, bPh: 0.60 },
+  // c8 → c7: bottom right
+  { id: "k4", x0: 738, y0: 550, x1: 648, y1: 654, cpx: 760, cpy: 640, dur:  9.0, phase: 0.55, bDur: 6.5, bPh: 0.80 },
+  // c7 → c6: bottom arc
+  { id: "k5", x0: 648, y0: 654, x1: 180, y1: 705, cpx: 414, cpy: 800, dur: 11.0, phase: 0.65, bDur: 8.5, bPh: 0.10 },
+  // c6 → c5: bottom left
+  { id: "k6", x0: 180, y0: 705, x1:  36, y1: 619, cpx:  60, cpy: 700, dur:  8.0, phase: 0.75, bDur: 7.5, bPh: 0.45 },
+  // c5 → c2: left side
+  { id: "k7", x0:  36, y0: 619, x1: 126, y1: 447, cpx: -40, cpy: 533, dur:  9.5, phase: 0.85, bDur: 8.0, bPh: 0.70 },
+  // c2 → c1: left upper
+  { id: "k8", x0: 126, y0: 447, x1:  45, y1: 155, cpx: -30, cpy: 301, dur:  8.0, phase: 0.10, bDur: 7.0, bPh: 0.20 },
 ];
 
-const CONNECTIONS_MOBILE = [
-  { id: "c1", x0: 54,  y0: 275, x1: 630, y1: 224, cpx: 340, cpy: 130, dur: 9.2, phase: 0.00, breatheDur: 7.0, breathePhase: 0.00 },
-  { id: "c2", x0: 630, y0: 224, x1: 648, y1: 413, cpx: 760, cpy: 318, dur: 7.8, phase: 0.33, breatheDur: 8.5, breathePhase: 0.40 },
-];
-
-/* ─── Atmospheric paths ──────────────────────────────────────────── */
-const FLOW_PATHS = [
-  { id: "fp1", d: "M 60 560 C 200 420, 500 280, 820 160",  dur: 8.0,  phase: 0.00, opacity: 0.040 },
-  { id: "fp2", d: "M 100 380 C 280 260, 550 420, 800 300", dur: 11.0, phase: 0.30, opacity: 0.028 },
-  { id: "fp3", d: "M 0 620 C 250 540, 600 520, 900 460",   dur: 14.0, phase: 0.60, opacity: 0.024 },
-  { id: "fp4", d: "M 80 200 C 300 160, 580 240, 860 360",  dur: 10.0, phase: 0.15, opacity: 0.024 },
-  { id: "fp5", d: "M 550 500 C 650 440, 760 460, 880 520", dur: 7.0,  phase: 0.50, opacity: 0.034 },
+const CONNS_MOBILE = [
+  { id: "km1", x0:  9, y0: 172, x1: 612, y1: 138, cpx: 310, cpy:  60, dur: 10.0, phase: 0.00, bDur: 8.0, bPh: 0.00 },
+  { id: "km2", x0: 612, y0: 138, x1: 630, y1: 430, cpx: 740, cpy: 284, dur:  8.5, phase: 0.50, bDur: 7.0, bPh: 0.50 },
 ];
 
 /* ─── Math helpers ───────────────────────────────────────────────── */
@@ -91,67 +98,71 @@ function parseCubic(d: string) {
   return { x0:p[0],y0:p[1],cx1:p[2],cy1:p[3],cx2:p[4],cy2:p[5],x1:p[6],y1:p[7] };
 }
 function eio(t: number) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
-function eioSoft(t: number) {
-  const e = eio(t);
-  return e + 0.04 * Math.sin(e * Math.PI);
-}
+function eioSoft(t: number) { const e = eio(t); return e + 0.035*Math.sin(e*Math.PI); }
 
-/* ─── Panel icon renderers ───────────────────────────────────────── */
-function TrendIcon({ t }: { t: number }) {
-  const base = [18,14,16,10,12,6,8,2];
-  const pts = base.map((y,i) => [i*8, Math.max(0, y + 2.0*Math.sin(t*0.36+i*0.82) + 0.6*Math.sin(t*1.1+i*1.5))]);
+/* ─── Mini visualizations ────────────────────────────────────────── */
+function TrendLine({ t }: { t: number }) {
+  const base = [14,11,13,8,10,5,7,2];
+  const pts = base.map((y,i) => [i*7, Math.max(0, y + 1.8*Math.sin(t*0.38+i*0.9) + 0.5*Math.sin(t*1.2+i*1.6))]);
   const d = pts.map(([x,y],i) => `${i===0?"M":"L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
   return (
-    <svg width="56" height="20" viewBox="0 0 56 20" fill="none">
-      <path d={d} stroke="rgba(129,140,248,0.50)" strokeWidth="1.0" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="1.6" fill="rgba(165,180,252,0.75)"/>
+    <svg width="50" height="18" viewBox="0 0 50 18" fill="none" style={{display:"block"}}>
+      <path d={d} stroke="rgba(129,140,248,0.65)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="2" fill="rgba(165,180,252,0.90)"/>
     </svg>
   );
 }
-function PulseIcon({ t }: { t: number }) {
-  const base = [3,7,5,10,8,12,6,9,4,11,7,5];
+function PulseBars({ t }: { t: number }) {
+  const base = [3,6,4,9,7,11,5,8,3,10,6,4];
   return (
-    <div style={{display:"flex",alignItems:"flex-end",gap:"2px",height:"16px"}}>
+    <div style={{display:"flex",alignItems:"flex-end",gap:"2px",height:"14px"}}>
       {base.map((h,i) => {
-        const v = h * (0.48 + 0.52 * Math.abs(
-          Math.sin(t*1.4+i*0.62)*0.38 + Math.sin(t*0.82+i*1.18)*0.28 + 0.34
-        ));
-        const op = 0.22 + 0.32 * Math.abs(Math.sin(t*0.95+i*0.48));
+        const v = h*(0.5+0.5*Math.abs(Math.sin(t*1.5+i*0.65)*0.4+Math.sin(t*0.9+i*1.2)*0.3+0.3));
+        const op = 0.35+0.45*Math.abs(Math.sin(t*1.0+i*0.5));
         return <div key={i} style={{width:"2px",height:`${Math.max(2,v)}px`,borderRadius:"1px",background:`rgba(129,140,248,${op.toFixed(2)})`}}/>;
       })}
     </div>
   );
 }
-function BarIcon({ t }: { t: number }) {
-  const fill = 0.62 + 0.18*Math.sin(t*0.30) + 0.06*Math.sin(t*1.9+0.5);
+function ProgressBar({ t }: { t: number }) {
+  const fill = 0.65+0.20*Math.sin(t*0.28)+0.05*Math.sin(t*2.1+0.5);
   return (
-    <div style={{width:"60px",height:"3px",borderRadius:"2px",background:"rgba(129,140,248,0.08)",overflow:"hidden"}}>
-      <div style={{height:"100%",width:`${Math.min(98,fill*100)}%`,borderRadius:"2px",background:"linear-gradient(90deg,rgba(99,102,241,0.55),rgba(165,180,252,0.75))",transition:"width 400ms ease"}}/>
+    <div style={{width:"56px",height:"3px",borderRadius:"2px",background:"rgba(129,140,248,0.12)",overflow:"hidden"}}>
+      <div style={{height:"100%",width:`${Math.min(97,fill*100)}%`,borderRadius:"2px",background:"linear-gradient(90deg,rgba(99,102,241,0.70),rgba(165,180,252,0.90))",transition:"width 500ms ease"}}/>
     </div>
   );
 }
-function StatusIcon({ t }: { t: number }) {
-  const p = 0.48 + 0.40 * Math.abs(Math.sin(t*1.12)) * (0.75 + 0.25*Math.sin(t*3.3+0.8));
+function StatusDot({ t }: { t: number }) {
+  const p = 0.55+0.38*Math.abs(Math.sin(t*1.15))*(0.7+0.3*Math.sin(t*3.5+0.8));
   return (
     <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
-      <div style={{width:"5px",height:"5px",borderRadius:"50%",background:`rgba(129,140,248,${p.toFixed(2)})`,boxShadow:`0 0 ${2+3.5*p}px rgba(99,102,241,0.28)`}}/>
-      <span style={{fontSize:"9px",color:"rgba(165,180,252,0.50)",letterSpacing:"0.04em",fontWeight:500}}>LIVE</span>
+      <div style={{width:"6px",height:"6px",borderRadius:"50%",background:`rgba(129,140,248,${p.toFixed(2)})`,boxShadow:`0 0 ${3+4*p}px rgba(99,102,241,0.40)`}}/>
+      <span style={{fontSize:"9px",color:"rgba(165,180,252,0.65)",letterSpacing:"0.06em",fontWeight:600}}>LIVE</span>
     </div>
   );
 }
 
-/* ─── Animated metric display ────────────────────────────────────── */
-function MetricDisplay({ metric, t }: { metric: typeof METRIC_POOL[0]; t: number }) {
+/* ─── Metric value display ───────────────────────────────────────── */
+function MetricValue({ metric, t }: { metric: typeof METRIC_POOL[0]; t: number }) {
   const isDecimal = metric.value % 1 !== 0;
   const drift = isDecimal
-    ? (metric.value + 0.12*Math.sin(t*0.16+metric.value*0.4)).toFixed(1)
-    : String(Math.round(metric.value + 1.5*Math.sin(t*0.17+metric.value*0.3)));
+    ? (metric.value + 0.10*Math.sin(t*0.18+metric.value*0.4)).toFixed(1)
+    : String(Math.round(metric.value + 1.2*Math.sin(t*0.19+metric.value*0.3)));
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:"2px",marginTop:"5px"}}>
-      <span style={{fontSize:"13px",fontWeight:600,color:"rgba(210,215,255,0.90)",letterSpacing:"0.01em",fontVariantNumeric:"tabular-nums",lineHeight:1}}>
+    <div style={{display:"flex",flexDirection:"column",gap:"3px",marginTop:"6px"}}>
+      <span style={{
+        fontSize:"15px",fontWeight:700,
+        color:"rgba(235,238,255,0.96)",
+        letterSpacing:"-0.01em",fontVariantNumeric:"tabular-nums",lineHeight:1,
+      }}>
         {metric.prefix}{drift}{metric.unit}
       </span>
-      <span style={{fontSize:"9px",fontWeight:400,color:"rgba(150,160,210,0.42)",letterSpacing:"0.03em",lineHeight:1}}>
+      <span style={{
+        fontSize:"9.5px",fontWeight:400,
+        color:"rgba(160,168,220,0.60)",
+        letterSpacing:"0.04em",lineHeight:1.3,
+        textTransform:"uppercase",
+      }}>
         {metric.label}
       </span>
     </div>
@@ -159,289 +170,288 @@ function MetricDisplay({ metric, t }: { metric: typeof METRIC_POOL[0]; t: number
 }
 
 /* ─── Signal capsule ─────────────────────────────────────────────── */
-function SignalCapsule({
-  cx, cy, angle, opacity, size,
-}: { cx: number; cy: number; angle: number; opacity: number; size: number }) {
-  const len = size * 5;
-  const dx = Math.cos(angle) * len * 0.5;
-  const dy = Math.sin(angle) * len * 0.5;
+function Signal({ cx, cy, angle, op, size }: { cx:number; cy:number; angle:number; op:number; size:number }) {
+  const len = size * 6;
+  const dx = Math.cos(angle)*len*0.5, dy = Math.sin(angle)*len*0.5;
   return (
-    <line
-      x1={cx - dx} y1={cy - dy}
-      x2={cx + dx} y2={cy + dy}
-      stroke={`rgba(165,180,252,${opacity.toFixed(2)})`}
-      strokeWidth={size}
-      strokeLinecap="round"
-      filter="url(#hg-glow)"
-    />
+    <line x1={cx-dx} y1={cy-dy} x2={cx+dx} y2={cy+dy}
+      stroke={`rgba(165,180,252,${op.toFixed(2)})`}
+      strokeWidth={size} strokeLinecap="round" filter="url(#glow)"/>
   );
 }
 
-/* ─── Canvas ─────────────────────────────────────────────────────── */
+/* ─── Background SVG (full-width atmospheric layer) ─────────────── */
+function BgSvg({ t, isMobile }: { t: number; isMobile: boolean }) {
+  const aiPulse = Math.max(0, Math.sin(t*0.22)*Math.sin(t*0.07));
+  const gd = 0.5+0.5*Math.sin(t*0.09);
+
+  // Orbital guide arcs — subtle concentric ellipses around center
+  const arcs = [
+    { rx: 340, ry: 200, op: 0.028 },
+    { rx: 460, ry: 280, op: 0.018 },
+    { rx: 560, ry: 340, op: 0.012 },
+  ];
+
+  return (
+    <svg viewBox="0 0 900 860" preserveAspectRatio="xMidYMid slice"
+      style={{position:"absolute",inset:0,width:"100%",height:"100%"}}>
+      <defs>
+        <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <radialGradient id="bgGrad" cx="50%" cy="55%" r="65%">
+          <stop offset="0%"   stopColor={`rgba(${Math.round(88+gd*12)},92,241,${(0.055+aiPulse*0.025).toFixed(3)})`}/>
+          <stop offset="50%"  stopColor="rgba(88,92,241,0.010)"/>
+          <stop offset="100%" stopColor="rgba(88,92,241,0)"/>
+        </radialGradient>
+        <radialGradient id="topGrad" cx="50%" cy="0%" r="55%">
+          <stop offset="0%"   stopColor={`rgba(${Math.round(88-gd*8)},92,${Math.round(241+gd*18)},${(0.038+aiPulse*0.015).toFixed(3)})`}/>
+          <stop offset="100%" stopColor="rgba(88,92,241,0)"/>
+        </radialGradient>
+        <linearGradient id="streakGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stopColor="rgba(165,180,252,0)"/>
+          <stop offset="40%"  stopColor="rgba(165,180,252,0.06)"/>
+          <stop offset="60%"  stopColor="rgba(165,180,252,0.11)"/>
+          <stop offset="100%" stopColor="rgba(165,180,252,0)"/>
+        </linearGradient>
+      </defs>
+
+      {/* Atmospheric gradients */}
+      <rect x="0" y="0" width="900" height="860" fill="url(#bgGrad)"/>
+      <rect x="0" y="0" width="900" height="860" fill="url(#topGrad)"/>
+
+      {/* Orbital guide arcs — centered at (450, 430) */}
+      {arcs.map((a,i) => (
+        <ellipse key={i} cx="450" cy="430" rx={a.rx} ry={a.ry}
+          fill="none" stroke={`rgba(129,140,248,${a.op})`} strokeWidth="0.6"
+          strokeDasharray="4 8"/>
+      ))}
+
+      {/* Faint grid — desktop only */}
+      {!isMobile && [180,360,540,720].map(x => (
+        <line key={`v${x}`} x1={x} y1="0" x2={x} y2="860" stroke="rgba(255,255,255,0.006)" strokeWidth="0.5"/>
+      ))}
+      {!isMobile && [215,430,645,760].map(y => (
+        <line key={`h${y}`} x1="0" y1={y} x2="900" y2={y} stroke="rgba(255,255,255,0.006)" strokeWidth="0.5"/>
+      ))}
+
+      {/* Light streak every ~22s */}
+      {(() => {
+        const sp = (t/22)%1;
+        const sx = sp*1100-100;
+        const so = Math.max(0, Math.sin(sp*Math.PI)*0.70);
+        return <rect x={sx-80} y="0" width="160" height="860" fill="url(#streakGrad)" opacity={so} transform="skewX(-14)"/>;
+      })()}
+
+      {/* Atmospheric flow paths */}
+      {!isMobile && [
+        { d:"M 40 580 C 180 440, 480 290, 820 150", dur:8.5,  ph:0.00, op:0.050 },
+        { d:"M 80 380 C 260 260, 540 420, 800 290", dur:11.5, ph:0.30, op:0.035 },
+        { d:"M 0  640 C 240 560, 590 530, 900 460", dur:14.0, ph:0.60, op:0.030 },
+        { d:"M 60 200 C 290 160, 570 240, 860 370", dur:10.5, ph:0.15, op:0.030 },
+        { d:"M 540 510 C 640 450, 750 470, 880 530", dur:7.5, ph:0.50, op:0.040 },
+      ].map((fp,i) => {
+        const b = fp.op*(0.55+0.45*Math.sin(t*0.44+fp.ph*10));
+        return <path key={i} d={fp.d} fill="none" stroke={`rgba(129,140,248,${b.toFixed(3)})`} strokeWidth="0.5" strokeLinecap="round"/>;
+      })}
+
+      {/* AI pulse ring */}
+      {(() => {
+        const pp = (t/14)%1;
+        const pr = pp*320;
+        const po = Math.max(0, Math.sin(pp*Math.PI)*0.065*(0.5+0.5*Math.sin(t*0.30)));
+        return <circle cx="450" cy="430" r={pr} fill="none" stroke={`rgba(99,102,241,${po.toFixed(3)})`} strokeWidth="0.6"/>;
+      })()}
+    </svg>
+  );
+}
+
+/* ─── Connection + signal layer (centered, 1000px wide) ─────────── */
+function ConnSvg({ t, conns, isMobile, msx, msy, focusIdx, focusInt }: {
+  t: number;
+  conns: typeof CONNS_DESKTOP;
+  isMobile: boolean;
+  msx: number; msy: number;
+  focusIdx: number; focusInt: number;
+}) {
+  return (
+    <svg viewBox="0 0 900 860" preserveAspectRatio="xMidYMid meet"
+      style={{position:"absolute",inset:0,width:"100%",height:"100%",overflow:"visible"}}>
+      {conns.map((c, ci) => {
+        const isFoc = ci === focusIdx % conns.length;
+        const breathe = 0.5+0.5*Math.sin(t*(Math.PI*2/c.bDur)+c.bPh*Math.PI*2);
+        const mid = qBez(0.5, c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
+        const dist = Math.hypot(msx-mid.x, msy-mid.y);
+        const mBoost = isMobile ? 0 : Math.max(0, 1-dist/260)*0.10;
+        const fBoost = isFoc ? focusInt*0.14 : 0;
+        const lineOp = (0.06+0.08*breathe+fBoost+mBoost).toFixed(3);
+
+        // Signal
+        const tRaw = ((t/c.dur+c.phase)%1+1)%1;
+        const te = eioSoft(tRaw);
+        const sp = qBez(te, c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
+        const tang = qBezTangent(te, c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
+        const angle = Math.atan2(tang.dy, tang.dx);
+        const t2r = Math.max(0, tRaw-0.04);
+        const sp2 = qBez(eioSoft(t2r), c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
+        const t3r = Math.max(0, tRaw-0.09);
+        const sp3 = qBez(eioSoft(t3r), c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
+        const t4r = ((t/c.dur+c.phase+0.5)%1+1)%1;
+        const sp4 = qBez(eioSoft(t4r), c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
+
+        const base = 0.5+0.5*breathe;
+        const fade = Math.sin(tRaw*Math.PI);
+        const sFocBoost = isFoc ? focusInt*0.28 : 0;
+        const sMBoost = isMobile ? 0 : Math.max(0, 1-dist/260)*0.20;
+        const sigOp = Math.min(0.85, (0.45+sFocBoost+sMBoost)*fade*base);
+        const t2Op = sigOp*0.42;
+        const t3Op = sigOp*0.18;
+        const secOp = 0.18*Math.sin(t4r*Math.PI)*base;
+
+        return (
+          <g key={c.id}>
+            <path d={`M ${c.x0} ${c.y0} Q ${c.cpx} ${c.cpy} ${c.x1} ${c.y1}`}
+              fill="none" stroke={`rgba(129,140,248,${lineOp})`}
+              strokeWidth={isFoc ? "0.80" : "0.45"} strokeLinecap="round"/>
+            <circle cx={sp3.x} cy={sp3.y} r="0.8" fill={`rgba(165,180,252,${t3Op.toFixed(2)})`} filter="url(#glow)"/>
+            <circle cx={sp2.x} cy={sp2.y} r="1.1" fill={`rgba(165,180,252,${t2Op.toFixed(2)})`} filter="url(#glow)"/>
+            <Signal cx={sp.x} cy={sp.y} angle={angle} op={sigOp} size={1.8}/>
+            <circle cx={sp4.x} cy={sp4.y} r="1.1" fill={`rgba(165,180,252,${secOp.toFixed(2)})`} filter="url(#glow)"/>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/* ─── HeroCanvas ─────────────────────────────────────────────────── */
 function HeroCanvas({ mouseX, mouseY, isMobile, metricCycle }: {
   mouseX: number; mouseY: number; isMobile: boolean; metricCycle: number;
 }) {
   const [t, setT] = useState(0);
-
   useEffect(() => {
-    let raf: number;
-    let start: number|null = null;
-    const loop = (ts: number) => {
-      if (!start) start = ts;
-      setT((ts - start) / 1000);
-      raf = requestAnimationFrame(loop);
-    };
+    let raf: number, start: number|null = null;
+    const loop = (ts: number) => { if (!start) start=ts; setT((ts-start)/1000); raf=requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const ox = isMobile ? 0 : mouseX * 8;
-  const oy = isMobile ? 0 : mouseY * 5;
+  const ox = isMobile ? 0 : mouseX*9;
+  const oy = isMobile ? 0 : mouseY*6;
 
-  const FOCUS_DUR = 8.0;
-  const focusIdx = Math.floor((t / FOCUS_DUR) % CONNECTIONS_DESKTOP.length);
-  const focusProg = (t / FOCUS_DUR) % 1;
-  const focusInt = Math.max(0, Math.sin(focusProg * Math.PI));
+  const cards = isMobile ? CARDS_MOBILE : CARDS_DESKTOP;
+  const conns = isMobile ? CONNS_MOBILE : CONNS_DESKTOP;
 
-  const aiPulse = Math.max(0, Math.sin(t * 0.20) * Math.sin(t * 0.065));
-  const gradDrift = 0.5 + 0.5 * Math.sin(t * 0.08);
+  const FOCUS_DUR = 9.0;
+  const focusIdx = Math.floor((t/FOCUS_DUR) % conns.length);
+  const focusProg = (t/FOCUS_DUR)%1;
+  const focusInt = Math.max(0, Math.sin(focusProg*Math.PI));
 
-  const panels = isMobile ? PANEL_SLOTS_MOBILE : PANEL_SLOTS_DESKTOP;
-  const conns = isMobile ? CONNECTIONS_MOBILE : CONNECTIONS_DESKTOP;
-  const fps = isMobile ? FLOW_PATHS.slice(0, 2) : FLOW_PATHS;
-
-  const msx = (mouseX * 0.5 + 0.5) * 900;
-  const msy = (mouseY * 0.5 + 0.5) * 860;
+  // Mouse in SVG coords (for proximity calc)
+  const msx = (mouseX*0.5+0.5)*900;
+  const msy = (mouseY*0.5+0.5)*860;
 
   return (
-    <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:0,pointerEvents:"none",overflow:"hidden"}}>
+    <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",overflow:"hidden"}}>
 
-      {/* ── Full-width background SVG (gradients, grid, streaks, flow paths) ── */}
-      <svg viewBox="0 0 900 860" preserveAspectRatio="xMidYMid slice"
-        style={{position:"absolute",inset:0,width:"100%",height:"100%"}}>
-        <defs>
-          <filter id="hg-glow" x="-120%" y="-120%" width="340%" height="340%">
-            <feGaussianBlur stdDeviation="2.2" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <radialGradient id="hg-bg" cx="50%" cy="70%" r="60%">
-            <stop offset="0%"   stopColor={`rgba(${Math.round(99+gradDrift*8)},102,241,${(0.038+aiPulse*0.018).toFixed(3)})`}/>
-            <stop offset="55%"  stopColor="rgba(99,102,241,0.007)"/>
-            <stop offset="100%" stopColor="rgba(99,102,241,0)"/>
-          </radialGradient>
-          <radialGradient id="hg-top" cx="50%" cy="0%" r="50%">
-            <stop offset="0%"   stopColor={`rgba(${Math.round(99-gradDrift*6)},102,${Math.round(241+gradDrift*14)},${(0.026+aiPulse*0.012).toFixed(3)})`}/>
-            <stop offset="100%" stopColor="rgba(99,102,241,0)"/>
-          </radialGradient>
-          <linearGradient id="hg-streak" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stopColor="rgba(165,180,252,0)"/>
-            <stop offset="35%"  stopColor="rgba(165,180,252,0.05)"/>
-            <stop offset="55%"  stopColor="rgba(165,180,252,0.09)"/>
-            <stop offset="100%" stopColor="rgba(165,180,252,0)"/>
-          </linearGradient>
-        </defs>
+      {/* Full-width atmospheric background */}
+      <BgSvg t={t} isMobile={isMobile}/>
 
-        <rect x="0" y="0" width="900" height="860" fill="url(#hg-bg)"/>
-        <rect x="0" y="0" width="900" height="860" fill="url(#hg-top)"/>
+      {/* Centered content layer: connections + cards */}
+      <div style={{position:"absolute",inset:0,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
+        <div style={{position:"relative",width:"100%",maxWidth:"1000px",height:"100%"}}>
 
-        {[
-          {cx:450,cy:700,rx:500,ry:280,op:0.011},
-          {cx:450,cy:720,rx:680,ry:380,op:0.007},
-          {cx:450,cy:740,rx:860,ry:480,op:0.004},
-        ].map((a,i) => (
-          <ellipse key={i} cx={a.cx} cy={a.cy} rx={a.rx} ry={a.ry}
-            fill="none" stroke={`rgba(129,140,248,${a.op})`} strokeWidth="0.5"/>
-        ))}
+          {/* Connection + signal SVG */}
+          <ConnSvg t={t} conns={conns} isMobile={isMobile} msx={msx} msy={msy} focusIdx={focusIdx} focusInt={focusInt}/>
 
-        {!isMobile && [180,360,540,720].map(x => (
-          <line key={`gv${x}`} x1={x} y1="0" x2={x} y2="860" stroke="rgba(255,255,255,0.005)" strokeWidth="0.5"/>
-        ))}
-        {!isMobile && [260,430,600,760].map(y => (
-          <line key={`gh${y}`} x1="0" y1={y} x2="900" y2={y} stroke="rgba(255,255,255,0.005)" strokeWidth="0.5"/>
-        ))}
-
-        {(() => {
-          const sc = 20.0;
-          const sp = (t / sc) % 1;
-          const sx = sp * 1100 - 100;
-          const so = Math.max(0, Math.sin(sp * Math.PI) * 0.65);
-          return (
-            <rect x={sx-90} y="0" width="180" height="860"
-              fill="url(#hg-streak)" opacity={so}
-              transform="skewX(-16)"/>
-          );
-        })()}
-
-        {fps.map(fp => {
-          const b = fp.opacity * (0.55 + 0.45 * Math.sin(t*0.42+fp.phase*10));
-          return <path key={fp.id} d={fp.d} fill="none"
-            stroke={`rgba(129,140,248,${b.toFixed(3)})`} strokeWidth="0.4" strokeLinecap="round"/>;
-        })}
-
-        {!isMobile && fps.map(fp => {
-          const c = parseCubic(fp.d);
-          const tRaw = ((t/fp.dur+fp.phase)%1+1)%1;
-          const pt = cubicBez(tRaw,c.x0,c.y0,c.cx1,c.cy1,c.cx2,c.cy2,c.x1,c.y1);
-          const op = 0.28 * Math.sin(tRaw * Math.PI);
-          const t2 = Math.max(0, tRaw-0.06);
-          const pt2 = cubicBez(t2,c.x0,c.y0,c.cx1,c.cy1,c.cx2,c.cy2,c.x1,c.y1);
-          return (
-            <g key={`as-${fp.id}`}>
-              <circle cx={pt2.x} cy={pt2.y} r="0.8" fill={`rgba(165,180,252,${(op*0.22).toFixed(2)})`} filter="url(#hg-glow)"/>
-              <circle cx={pt.x}  cy={pt.y}  r="1.4" fill={`rgba(165,180,252,${op.toFixed(2)})`} filter="url(#hg-glow)"/>
-            </g>
-          );
-        })}
-
-        {/* AI processing pulse ring */}
-        {(() => {
-          const pc = 13.0;
-          const pp = (t / pc) % 1;
-          const pr = pp * 300;
-          const po = Math.max(0, Math.sin(pp * Math.PI) * 0.055 * (0.5 + 0.5*Math.sin(t*0.28)));
-          return <circle cx="450" cy="370" r={pr} fill="none"
-            stroke={`rgba(99,102,241,${po.toFixed(3)})`} strokeWidth="0.55"/>;
-        })()}
-      </svg>
-
-      {/* ── Centered content area: connections + panels ── */}
-      {/* This wrapper matches the hero content max-width so panels/paths align with text */}
-      <div style={{
-        position: "absolute",
-        inset: 0,
-        display: "flex",
-        justifyContent: "center",
-        pointerEvents: "none",
-      }}>
-        <div style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: "1000px",
-          height: "100%",
-        }}>
-
-          {/* Connection lines + signals — SVG using same 900×860 viewBox as panels */}
-          <svg
-            viewBox="0 0 900 860"
-            preserveAspectRatio="xMidYMid meet"
-            style={{position:"absolute",inset:0,width:"100%",height:"100%",overflow:"visible"}}
-          >
-            {conns.map((c, ci) => {
-              const isFoc = ci === focusIdx % conns.length;
-              const breathe = 0.5 + 0.5 * Math.sin(t*(Math.PI*2/c.breatheDur)+c.breathePhase*Math.PI*2);
-              const mid = qBez(0.5, c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
-              const dist = Math.hypot(msx-mid.x, msy-mid.y);
-              const mouseBoost = isMobile ? 0 : Math.max(0, 1-dist/240) * 0.09;
-              const focBoost = isFoc ? focusInt * 0.13 : 0;
-              const lineOp = (0.04 + 0.065*breathe + focBoost + mouseBoost).toFixed(3);
-
-              const tRaw = ((t/c.dur+c.phase)%1+1)%1;
-              const te = eioSoft(tRaw);
-              const sp = qBez(te, c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
-              const tang = qBezTangent(te, c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
-              const angle = Math.atan2(tang.dy, tang.dx);
-              const t2r = Math.max(0, tRaw - 0.04);
-              const sp2 = qBez(eioSoft(t2r), c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
-              const t3r = Math.max(0, tRaw - 0.09);
-              const sp3 = qBez(eioSoft(t3r), c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
-              const t4r = ((t/c.dur+c.phase+0.5)%1+1)%1;
-              const sp4 = qBez(eioSoft(t4r), c.x0, c.y0, c.cpx, c.cpy, c.x1, c.y1);
-              const base = 0.5 + 0.5 * breathe;
-              const fade = Math.sin(tRaw * Math.PI);
-              const sigFocBoost = isFoc ? focusInt * 0.25 : 0;
-              const sigMouseBoost = isMobile ? 0 : Math.max(0, 1-dist/240) * 0.18;
-              const sigOp = Math.min(0.80, (0.40 + sigFocBoost + sigMouseBoost) * fade * base);
-              const t2Op = sigOp * 0.45;
-              const t3Op = sigOp * 0.18;
-              const secOp = 0.16 * Math.sin(t4r * Math.PI) * base;
-
-              return (
-                <g key={`conn-${c.id}`}>
-                  <path
-                    d={`M ${c.x0} ${c.y0} Q ${c.cpx} ${c.cpy} ${c.x1} ${c.y1}`}
-                    fill="none"
-                    stroke={`rgba(129,140,248,${lineOp})`}
-                    strokeWidth={isFoc ? "0.70" : "0.40"}
-                    strokeLinecap="round"
-                  />
-                  <circle cx={sp3.x} cy={sp3.y} r="0.7" fill={`rgba(165,180,252,${t3Op.toFixed(2)})`} filter="url(#hg-glow)"/>
-                  <circle cx={sp2.x} cy={sp2.y} r="1.0" fill={`rgba(165,180,252,${t2Op.toFixed(2)})`} filter="url(#hg-glow)"/>
-                  <SignalCapsule cx={sp.x} cy={sp.y} angle={angle} opacity={sigOp} size={1.6}/>
-                  <circle cx={sp4.x} cy={sp4.y} r="1.0" fill={`rgba(165,180,252,${secOp.toFixed(2)})`} filter="url(#hg-glow)"/>
-                </g>
-              );
-            })}
-          </svg>
-
-          {/* Metric panels — positioned relative to the 1000px content area */}
-          {panels.map((slot, pi) => {
-            const metricIdx = (slot.metricOffset + metricCycle) % METRIC_POOL.length;
+          {/* Metric cards */}
+          {cards.map((slot, pi) => {
+            const metricIdx = (slot.mOff + metricCycle) % METRIC_POOL.length;
             const metric = METRIC_POOL[metricIdx];
 
-            const orbitAngle = (t / slot.orbitDur + slot.orbitPhase) * Math.PI * 2;
-            const orbitX = Math.cos(orbitAngle) * slot.orbitR;
-            const orbitY = Math.sin(orbitAngle) * slot.orbitR * 0.55;
+            const orbitAngle = (t/slot.orbitDur + slot.orbitPhase)*Math.PI*2;
+            const orbitX = Math.cos(orbitAngle)*slot.orbitR;
+            const orbitY = Math.sin(orbitAngle)*slot.orbitR*0.55;
 
-            const px = ox * slot.parallaxFactor;
-            const py = oy * slot.parallaxFactor;
+            const px = ox*slot.pFactor;
+            const py = oy*slot.pFactor;
 
-            const breathe = 0.5 + 0.5 * Math.sin(t*0.50+slot.breatheOffset);
-            const panelOp = 0.78 + 0.16 * breathe;
+            const breathe = 0.5+0.5*Math.sin(t*0.52+slot.bOff);
+            const panelOp = 0.88+0.10*breathe;
 
-            const isFoc = pi === focusIdx % panels.length;
-            const focGlow = isFoc ? focusInt * 0.18 : 0;
+            const isFoc = pi === focusIdx % cards.length;
+            const focGlow = isFoc ? focusInt*0.22 : 0;
 
-            const panelCX = parseFloat(slot.cx) / 100 * 900;
-            const panelCY = parseFloat(slot.cy) / 100 * 860;
-            const dist = Math.hypot(msx - panelCX, msy - panelCY);
-            const mouseProx = isMobile ? 0 : Math.max(0, 1 - dist/190);
-            const mouseGlow = mouseProx * 0.14;
-            const mouseScale = 1 + mouseProx * 0.016;
+            // Mouse proximity
+            const cxSvg = parseFloat(slot.cx)/100*900;
+            const cySvg = parseFloat(slot.cy)/100*860;
+            const dist = Math.hypot(msx-cxSvg, msy-cySvg);
+            const mProx = isMobile ? 0 : Math.max(0, 1-dist/200);
+            const mGlow = mProx*0.18;
+            const mScale = 1+mProx*0.018;
 
-            const totalGlow = focGlow + mouseGlow;
-            const scale = (isFoc ? 1 + focusInt*0.010 : 1) * mouseScale;
+            const totalGlow = focGlow+mGlow;
+            const scale = (isFoc ? 1+focusInt*0.012 : 1)*mScale;
+
+            const borderOp = (0.14+totalGlow*0.80).toFixed(2);
+            const bgAlpha = (0.62+totalGlow*0.18).toFixed(2);
+            const glowStr = totalGlow > 0.02
+              ? `inset 0 1px 0 rgba(255,255,255,0.08),0 8px 32px rgba(0,0,0,0.28),0 0 20px rgba(99,102,241,${(totalGlow*0.35).toFixed(2)})`
+              : "inset 0 1px 0 rgba(255,255,255,0.05),0 6px 20px rgba(0,0,0,0.22)";
+
+            const cardStyle: React.CSSProperties = isMobile ? {
+              padding:"7px 10px",
+              borderRadius:"10px",
+              background:`rgba(8,8,22,${bgAlpha})`,
+              backdropFilter:"blur(18px)",
+              WebkitBackdropFilter:"blur(18px)",
+              border:`1px solid rgba(129,140,248,${borderOp})`,
+              boxShadow:glowStr,
+              display:"flex",flexDirection:"column",
+              minWidth:"82px",maxWidth:"92px",
+              overflow:"hidden",
+            } : {
+              padding:"10px 14px",
+              borderRadius:"12px",
+              background:`rgba(8,8,22,${bgAlpha})`,
+              backdropFilter:"blur(22px)",
+              WebkitBackdropFilter:"blur(22px)",
+              border:`1px solid rgba(129,140,248,${borderOp})`,
+              boxShadow:glowStr,
+              display:"flex",flexDirection:"column",
+              minWidth:"104px",
+              overflow:"hidden",
+            };
 
             return (
-              <div
-                key={slot.id}
-                style={{
-                  position: "absolute",
-                  left: slot.cx,
-                  top: slot.cy,
-                  zIndex: 1,
-                  pointerEvents: "none",
-                  transform: `translate(${orbitX + px}px, ${orbitY + py}px)`,
-                  willChange: "transform",
-                }}
-              >
+              <div key={slot.id} style={{
+                position:"absolute",
+                left:slot.cx, top:slot.cy,
+                zIndex:2, pointerEvents:"none",
+                transform:`translate(${orbitX+px}px,${orbitY+py}px)`,
+                willChange:"transform",
+              }}>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={`${slot.id}-${metricIdx}`}
-                    initial={{ opacity: 0, scale: 0.88, filter: "blur(6px)" }}
-                    animate={{ opacity: panelOp, scale: scale, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, scale: 0.88, filter: "blur(6px)" }}
-                    transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                    style={{
-                      padding: "9px 13px",
-                      borderRadius: "12px",
-                      background: `rgba(7,7,18,${(0.56+totalGlow*0.22).toFixed(2)})`,
-                      backdropFilter: "blur(20px)",
-                      WebkitBackdropFilter: "blur(20px)",
-                      border: `1px solid rgba(129,140,248,${(0.08+totalGlow*0.90).toFixed(2)})`,
-                      boxShadow: totalGlow > 0.015
-                        ? `inset 0 1px 0 rgba(255,255,255,0.055),0 8px 28px rgba(0,0,0,0.22),0 0 18px rgba(99,102,241,${(totalGlow*0.30).toFixed(2)})`
-                        : "inset 0 1px 0 rgba(255,255,255,0.035),0 8px 24px rgba(0,0,0,0.18)",
-                      display: "flex",
-                      flexDirection: "column",
-                      minWidth: "98px",
-                      overflow: "hidden",
-                    }}
+                    initial={{ opacity:0, scale:0.86, filter:"blur(8px)" }}
+                    animate={{ opacity:panelOp, scale:scale, filter:"blur(0px)" }}
+                    exit={{ opacity:0, scale:0.86, filter:"blur(8px)" }}
+                    transition={{ duration:0.55, ease:[0.22,1,0.36,1] }}
+                    style={cardStyle}
                   >
-                    {metric.icon === "trend"  && <TrendIcon t={t}/>}
-                    {metric.icon === "pulse"  && <PulseIcon t={t}/>}
-                    {metric.icon === "bar"    && <BarIcon t={t}/>}
-                    {metric.icon === "status" && <StatusIcon t={t}/>}
-                    <MetricDisplay metric={metric} t={t}/>
+                    {/* Top shimmer line */}
+                    <span aria-hidden="true" style={{
+                      position:"absolute",top:0,left:0,right:0,height:"1px",
+                      background:"linear-gradient(to right,transparent,rgba(165,180,252,0.22),transparent)",
+                      pointerEvents:"none",
+                    }}/>
+                    {metric.icon === "trend"  && <TrendLine t={t}/>}
+                    {metric.icon === "pulse"  && <PulseBars t={t}/>}
+                    {metric.icon === "bar"    && <ProgressBar t={t}/>}
+                    {metric.icon === "status" && <StatusDot t={t}/>}
+                    <MetricValue metric={metric} t={t}/>
                   </motion.div>
                 </AnimatePresence>
               </div>
@@ -450,7 +460,6 @@ function HeroCanvas({ mouseX, mouseY, isMobile, metricCycle }: {
 
         </div>
       </div>
-
     </div>
   );
 }
@@ -458,7 +467,7 @@ function HeroCanvas({ mouseX, mouseY, isMobile, metricCycle }: {
 /* ─── Hero ──────────────────────────────────────────────────────── */
 export function Hero() {
   const [index, setIndex] = useState(0);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [mousePos, setMousePos] = useState({ x:0, y:0 });
   const [isMobile, setIsMobile] = useState(false);
   const [metricCycle, setMetricCycle] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
@@ -466,7 +475,7 @@ export function Hero() {
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
-    window.addEventListener("resize", check, { passive: true });
+    window.addEventListener("resize", check, { passive:true });
     return () => window.removeEventListener("resize", check);
   }, []);
 
@@ -476,7 +485,7 @@ export function Hero() {
   }, []);
 
   useEffect(() => {
-    const id = setInterval(() => setMetricCycle(c => c + 1), METRIC_ROTATE_MS);
+    const id = setInterval(() => setMetricCycle(c => c+1), 4500);
     return () => clearInterval(id);
   }, []);
 
@@ -492,52 +501,52 @@ export function Hero() {
   useEffect(() => {
     const el = sectionRef.current;
     if (!el || isMobile) return;
-    el.addEventListener("mousemove", handleMouseMove, { passive: true });
+    el.addEventListener("mousemove", handleMouseMove, { passive:true });
     return () => el.removeEventListener("mousemove", handleMouseMove);
   }, [handleMouseMove, isMobile]);
 
   return (
     <section ref={sectionRef} aria-label="Hero" style={{
-      position:"relative",overflow:"hidden",minHeight:"800px",
-      display:"flex",flexDirection:"column",alignItems:"center",
-      marginTop:"-81px",paddingTop:"81px",
+      position:"relative", overflow:"hidden", minHeight:"580px",
+      display:"flex", flexDirection:"column", alignItems:"center",
+      marginTop:"-81px", paddingTop:"81px", paddingBottom:"0",
     }}>
-      {/* Atmospheric glow */}
-      <motion.div aria-hidden="true" initial={{opacity:0}} animate={{opacity:1}} transition={{duration:2.2,ease:"easeOut"}}
+      {/* Atmospheric glow overlay */}
+      <motion.div aria-hidden="true" initial={{opacity:0}} animate={{opacity:1}} transition={{duration:2.4,ease:"easeOut"}}
         style={{position:"absolute",inset:0,zIndex:0,pointerEvents:"none"}}>
         <div style={{
-          position:"absolute",left:"50%",top:"-8%",transform:"translateX(-50%)",
-          height:"500px",width:"700px",borderRadius:"9999px",
-          background:"radial-gradient(ellipse at 50% 0%,rgba(99,102,241,0.032) 0%,rgba(99,102,241,0.005) 65%,transparent 85%)",
+          position:"absolute",left:"50%",top:"-10%",transform:"translateX(-50%)",
+          height:"520px",width:"720px",borderRadius:"9999px",
+          background:"radial-gradient(ellipse at 50% 0%,rgba(88,92,241,0.040) 0%,rgba(88,92,241,0.006) 65%,transparent 85%)",
         }}/>
-        <div className="bg-grid" style={{position:"absolute",inset:0,opacity:0.055}}/>
+        <div className="bg-grid" style={{position:"absolute",inset:0,opacity:0.060}}/>
       </motion.div>
 
-      {/* Canvas — bg fills full width, panels/connections centered */}
+      {/* Canvas */}
       <div style={{position:"absolute",inset:0,zIndex:0,overflow:"hidden",pointerEvents:"none"}}>
         <HeroCanvas mouseX={mousePos.x} mouseY={mousePos.y} isMobile={isMobile} metricCycle={metricCycle}/>
       </div>
 
-      {/* Readability vignette */}
+      {/* Readability vignette — keeps text legible over the orbit */}
       <div aria-hidden="true" style={{
         position:"absolute",inset:0,zIndex:1,pointerEvents:"none",
-        background:"radial-gradient(ellipse 64% 58% at 50% 38%,rgba(5,5,5,0.44) 0%,rgba(5,5,5,0.16) 55%,transparent 80%)",
+        background:"radial-gradient(ellipse 55% 52% at 50% 40%,rgba(4,4,12,0.52) 0%,rgba(4,4,12,0.18) 55%,transparent 80%)",
       }}/>
 
-      {/* Content */}
+      {/* Hero content */}
       <div style={{
         position:"relative",zIndex:2,maxWidth:"1280px",width:"100%",
-        margin:"0 auto",padding:"80px 24px 120px",
+        margin:"0 auto",padding:"80px 24px 48px",
         textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",
         pointerEvents:"none",
       }}>
         <motion.h1
-          initial={{opacity:0,y:22}} animate={{opacity:1,y:0}}
-          transition={{duration:0.80,ease:[0.22,1,0.36,1],delay:0.16}}
+          initial={{opacity:0,y:24}} animate={{opacity:1,y:0}}
+          transition={{duration:0.85,ease:[0.22,1,0.36,1],delay:0.18}}
           style={{
-            fontSize:"clamp(36px,5vw,60px)",fontWeight:400,lineHeight:1.2,
-            letterSpacing:"-0.025em",color:"#f5f5f7",
-            margin:"0 0 20px",width:"100%",maxWidth:"min(680px,90%)",
+            fontSize:"clamp(36px,5vw,62px)",fontWeight:400,lineHeight:1.18,
+            letterSpacing:"-0.028em",color:"#f5f5f7",
+            margin:"0 0 22px",width:"100%",maxWidth:"min(700px,90%)",
           }}
         >
           <span style={{display:"block"}}>We build AI systems for</span>
@@ -552,9 +561,9 @@ export function Hero() {
                   WebkitBackgroundClip:"text",backgroundClip:"text",
                   WebkitTextFillColor:"transparent",color:"transparent",
                 }}
-                initial={{y:"108%",opacity:0,filter:"blur(6px)"}}
+                initial={{y:"110%",opacity:0,filter:"blur(6px)"}}
                 animate={{y:"0%",opacity:1,filter:"blur(0px)"}}
-                exit={{y:"-108%",opacity:0,filter:"blur(6px)"}}
+                exit={{y:"-110%",opacity:0,filter:"blur(6px)"}}
                 transition={{duration:TRANSITION_MS/1000,ease:[0.22,1,0.36,1]}}
               >
                 {PHRASES[index]}
@@ -564,26 +573,26 @@ export function Hero() {
         </motion.h1>
 
         <motion.p
-          initial={{opacity:0,y:16}} animate={{opacity:1,y:0}}
-          transition={{duration:0.70,ease:[0.22,1,0.36,1],delay:0.28}}
+          initial={{opacity:0,y:18}} animate={{opacity:1,y:0}}
+          transition={{duration:0.72,ease:[0.22,1,0.36,1],delay:0.30}}
           style={{
-            fontSize:"clamp(15px,2vw,18px)",fontWeight:300,lineHeight:1.70,
-            color:"rgba(255,255,255,0.80)",
-            width:"100%",maxWidth:"min(550px,90%)",
-            marginBottom:"40px",marginTop:"-10px",
+            fontSize:"clamp(15px,2vw,18px)",fontWeight:300,lineHeight:1.72,
+            color:"rgba(255,255,255,0.78)",
+            width:"100%",maxWidth:"min(560px,90%)",
+            marginBottom:"42px",marginTop:"-8px",
           }}
         >
           From content execution to lead handling to internal workflows, we design AI-powered systems that help companies{" "}
-          <strong style={{fontWeight:500,color:"rgb(255,255,255)"}}>scale with less manual work.</strong>
+          <strong style={{fontWeight:500,color:"rgba(255,255,255,0.96)"}}>scale with less manual work.</strong>
         </motion.p>
 
         <motion.div
-          initial={{opacity:0,y:14}} animate={{opacity:1,y:0}}
-          transition={{duration:0.70,ease:[0.22,1,0.36,1],delay:0.38}}
-          style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"30px",flexWrap:"wrap",pointerEvents:"auto"}}
+          initial={{opacity:0,y:16}} animate={{opacity:1,y:0}}
+          transition={{duration:0.72,ease:[0.22,1,0.36,1],delay:0.40}}
+          style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"28px",flexWrap:"wrap",pointerEvents:"auto"}}
         >
-          <HeroPrimaryBtn href="#contact" label="Book a Free Call"/>
-          <HeroSecondaryBtn href="#how-it-works" label="See How It Works"/>
+          <PrimaryBtn href="#contact" label="Book a Free Call"/>
+          <SecondaryBtn href="#how-it-works" label="See How It Works"/>
         </motion.div>
       </div>
     </section>
@@ -591,15 +600,15 @@ export function Hero() {
 }
 
 /* ─── Buttons ────────────────────────────────────────────────────── */
-function HeroPrimaryBtn({ href, label }: { href: string; label: string }) {
+function PrimaryBtn({ href, label }: { href:string; label:string }) {
   const [hov, setHov] = useState(false);
   return (
     <a href={href} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{
         position:"relative",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"8px",
-        width:"clamp(190px,75vw,210px)",padding:"14px 20px",borderRadius:"16px",
+        width:"clamp(190px,75vw,214px)",padding:"14px 20px",borderRadius:"16px",
         fontSize:"14px",fontWeight:400,letterSpacing:"0.02em",
-        textDecoration:"none",color:"rgba(255,255,255,0.92)",
+        textDecoration:"none",color:"rgba(255,255,255,0.94)",
         background:hov?"linear-gradient(170deg,#818cf8 0%,#6366f1 50%,#4f46e5 100%)":"linear-gradient(170deg,#5b5ef4 0%,#4338ca 100%)",
         boxShadow:hov?"inset 0 1px 0 0 rgba(255,255,255,0.28),inset 0 -1px 0 0 rgba(0,0,0,0.30),0 8px 24px -4px rgba(79,70,229,0.55)":"inset 0 1px 0 0 rgba(255,255,255,0.14),inset 0 -1px 0 0 rgba(0,0,0,0.30)",
         border:hov?"1px solid rgba(255,255,255,0.18)":"1px solid rgba(255,255,255,0.10)",
@@ -618,7 +627,7 @@ function HeroPrimaryBtn({ href, label }: { href: string; label: string }) {
   );
 }
 
-function HeroSecondaryBtn({ href, label }: { href: string; label: string }) {
+function SecondaryBtn({ href, label }: { href:string; label:string }) {
   const [hov, setHov] = useState(false);
   const [press, setPress] = useState(false);
   return (
@@ -627,7 +636,7 @@ function HeroSecondaryBtn({ href, label }: { href: string; label: string }) {
       onMouseDown={()=>setPress(true)} onMouseUp={()=>setPress(false)}
       style={{
         position:"relative",display:"inline-flex",alignItems:"center",justifyContent:"center",
-        width:"clamp(190px,75vw,210px)",padding:"14px 20px",borderRadius:"16px",
+        width:"clamp(190px,75vw,214px)",padding:"14px 20px",borderRadius:"16px",
         fontSize:"14px",fontWeight:400,textDecoration:"none",overflow:"hidden",whiteSpace:"nowrap",
         color:hov?"#f5f5f7":"#d4d4d8",
         background:hov?"rgba(255,255,255,0.10)":"rgba(255,255,255,0.06)",
