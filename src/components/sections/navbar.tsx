@@ -47,7 +47,7 @@ export function Navbar() {
         >
           <div style={{ position: "relative", width: 140, height: 22, flexShrink: 0 }}>
             <Image
-              src="/logoDeMeloApps.svg"
+              src="/logoDeMeloApps.png"
               alt="DeMeloApps logo"
               fill
               style={{ objectFit: "contain" }}
