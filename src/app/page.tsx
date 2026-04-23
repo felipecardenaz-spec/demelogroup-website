@@ -1,6 +1,7 @@
 import { Hero } from "@/components/sections/hero";
 import { LogoCarousel } from "@/components/sections/logo-carousel";
 import { Stats } from "@/components/sections/stats";
+import { ImpactAreas } from "@/components/sections/impact-areas";
 import { Services } from "@/components/sections/services";
 
 /**
@@ -12,9 +13,9 @@ export default function HomePage() {
       <Hero />
       <LogoCarousel />
       <Stats />
+      <ImpactAreas />
       <Services />
       {/* Future sections:
-          <Services />
           <Process />
           <Testimonials />
           <CTA />
