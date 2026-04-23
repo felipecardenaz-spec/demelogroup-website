@@ -314,10 +314,6 @@ function ConnSvg({ t, conns, isMobile, msx, msy, focusIdx, focusInt }: {
             <path d={`M ${c.x0} ${c.y0} Q ${c.cpx} ${c.cpy} ${c.x1} ${c.y1}`}
               fill="none" stroke={`rgba(129,140,248,${lineOp})`}
               strokeWidth={isFoc ? "0.80" : "0.45"} strokeLinecap="round"/>
-            <circle cx={sp3.x} cy={sp3.y} r="0.8" fill={`rgba(165,180,252,${t3Op.toFixed(2)})`} filter="url(#glow)"/>
-            <circle cx={sp2.x} cy={sp2.y} r="1.1" fill={`rgba(165,180,252,${t2Op.toFixed(2)})`} filter="url(#glow)"/>
-            <Signal cx={sp.x} cy={sp.y} angle={angle} op={sigOp} size={1.8}/>
-            <circle cx={sp4.x} cy={sp4.y} r="1.1" fill={`rgba(165,180,252,${secOp.toFixed(2)})`} filter="url(#glow)"/>
           </g>
         );
       })}
@@ -507,9 +503,9 @@ export function Hero() {
 
   return (
     <section ref={sectionRef} aria-label="Hero" style={{
-      position:"relative", overflow:"hidden", minHeight:"580px",
+      position:"relative", overflow:"hidden", minHeight:isMobile?"80vh":"100vh",
       display:"flex", flexDirection:"column", alignItems:"center",
-      marginTop:"-81px", paddingTop:"81px", paddingBottom:"0",
+      marginTop:"-81px", paddingTop:"81px", paddingBottom:"0px",
     }}>
       {/* Atmospheric glow overlay */}
       <motion.div aria-hidden="true" initial={{opacity:0}} animate={{opacity:1}} transition={{duration:2.4,ease:"easeOut"}}
@@ -544,9 +540,9 @@ export function Hero() {
           initial={{opacity:0,y:24}} animate={{opacity:1,y:0}}
           transition={{duration:0.85,ease:[0.22,1,0.36,1],delay:0.18}}
           style={{
-            fontSize:"clamp(36px,5vw,62px)",fontWeight:400,lineHeight:1.18,
+            fontSize:"clamp(28px,5vw,62px)",fontWeight:400,lineHeight:1.18,
             letterSpacing:"-0.028em",color:"#f5f5f7",
-            margin:"0 0 22px",width:"100%",maxWidth:"min(700px,90%)",
+            margin:"0 0 22px",width:"100%",maxWidth:"min(700px,95%)",
           }}
         >
           <span style={{display:"block"}}>We build AI systems for</span>
@@ -591,8 +587,8 @@ export function Hero() {
           transition={{duration:0.72,ease:[0.22,1,0.36,1],delay:0.40}}
           style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"28px",flexWrap:"wrap",pointerEvents:"auto"}}
         >
-          <PrimaryBtn href="#contact" label="Book a Free Call"/>
-          <SecondaryBtn href="#how-it-works" label="See How It Works"/>
+          <PrimaryBtn href="#contact" label="Book a Free Call" isMobile={isMobile}/>
+          <SecondaryBtn href="#how-it-works" label="See How It Works" isMobile={isMobile}/>
         </motion.div>
       </div>
     </section>
@@ -600,13 +596,13 @@ export function Hero() {
 }
 
 /* ─── Buttons ────────────────────────────────────────────────────── */
-function PrimaryBtn({ href, label }: { href:string; label:string }) {
+function PrimaryBtn({ href, label, isMobile }: { href:string; label:string; isMobile:boolean }) {
   const [hov, setHov] = useState(false);
   return (
     <a href={href} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{
         position:"relative",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"8px",
-        width:"clamp(190px,75vw,214px)",padding:"14px 20px",borderRadius:"16px",
+        width:isMobile?"75%":"clamp(190px,75vw,214px)",padding:"14px 20px",borderRadius:"16px",
         fontSize:"14px",fontWeight:400,letterSpacing:"0.02em",
         textDecoration:"none",color:"rgba(255,255,255,0.94)",
         background:hov?"linear-gradient(170deg,#818cf8 0%,#6366f1 50%,#4f46e5 100%)":"linear-gradient(170deg,#5b5ef4 0%,#4338ca 100%)",
@@ -627,7 +623,7 @@ function PrimaryBtn({ href, label }: { href:string; label:string }) {
   );
 }
 
-function SecondaryBtn({ href, label }: { href:string; label:string }) {
+function SecondaryBtn({ href, label, isMobile }: { href:string; label:string; isMobile:boolean }) {
   const [hov, setHov] = useState(false);
   const [press, setPress] = useState(false);
   return (
@@ -636,7 +632,7 @@ function SecondaryBtn({ href, label }: { href:string; label:string }) {
       onMouseDown={()=>setPress(true)} onMouseUp={()=>setPress(false)}
       style={{
         position:"relative",display:"inline-flex",alignItems:"center",justifyContent:"center",
-        width:"clamp(190px,75vw,214px)",padding:"14px 20px",borderRadius:"16px",
+        width:isMobile?"75%":"clamp(190px,75vw,214px)",padding:"14px 20px",borderRadius:"16px",
         fontSize:"14px",fontWeight:400,textDecoration:"none",overflow:"hidden",whiteSpace:"nowrap",
         color:hov?"#f5f5f7":"#d4d4d8",
         background:hov?"rgba(255,255,255,0.10)":"rgba(255,255,255,0.06)",
