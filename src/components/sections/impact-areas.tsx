@@ -1,630 +1,405 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence, useInView, useScroll, useTransform, useSpring } from "framer-motion";
+import { useState, useEffect } from "react";
 
-/* ─── Domain data ────────────────────────────────────────────────── */
-type DomainId = "marketing" | "sales" | "operations";
+type ModuleId = "hero" | "marketing" | "sales" | "operations";
 
-type Domain = {
-  id: DomainId;
-  title: string;
-  short: string;
-  description: string;
-  capabilities: string[];
-  results: string[];
-  color: string;
-};
-
-const DOMAINS: Domain[] = [
-  {
-    id: "marketing",
-    title: "Marketing & Content Systems",
-    short: "Marketing",
-    description:
-      "Automate content creation, campaign workflows, publishing pipelines, and performance visibility across your marketing operation.",
-    capabilities: ["Content generation", "Campaign execution", "Publishing workflows"],
-    results: ["+35% content performance", "Faster campaign delivery"],
-    color: "rgba(99,102,241,",
-  },
-  {
-    id: "sales",
-    title: "Sales & Lead Systems",
-    short: "Sales",
-    description:
-      "Capture, qualify, respond to, and manage leads with AI-powered systems that improve speed and reduce missed opportunities.",
-    capabilities: ["Lead capture", "Qualification flows", "Automated follow-ups"],
-    results: ["+41% lead response speed", "+2.4x qualified leads"],
-    color: "rgba(129,120,248,",
-  },
-  {
-    id: "operations",
-    title: "Operations & Workflow Systems",
-    short: "Operations",
-    description:
-      "Streamline repetitive tasks, internal processes, reporting flows, and team coordination with intelligent operational automation.",
-    capabilities: ["Workflow automation", "Reporting systems", "Task coordination"],
-    results: ["−18h manual work / week", "78% tasks automated"],
-    color: "rgba(79,70,229,",
-  },
-];
-
-/* ─── Lerp helper ────────────────────────────────────────────────── */
-function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-
-/* ─── Mini visualizations (refined, less busy) ───────────────────── */
-function MarketingMini({ t, active }: { t: number; active: boolean }) {
-  const s = active ? 1.2 : 0.8;
-  const pts = [11, 9, 12, 7, 10, 5, 8, 3, 6, 1].map((y, i) => [
-    i * 11,
-    Math.max(0, y + 1.2 * Math.sin(t * 0.35 + i * 0.80) * s),
-  ]);
-  const d = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
-  const nodes = [0, 1, 2, 3, 4];
-  const baseOp = active ? 0.55 : 0.28;
+/* ─── Animated flow dot ──────────────────────────────────────────── */
+function FlowDot({ t, offset = 0 }: { t: number; offset?: number }) {
+  const progress = ((t * 0.28 + offset) % 1 + 1) % 1;
+  const x = progress * 100;
   return (
-    <div style={{ width: "100%", height: "58px", position: "relative", overflow: "hidden" }}>
-      <div style={{ display: "flex", alignItems: "center", position: "absolute", top: "5px", left: "2px", right: "2px" }}>
-        {nodes.map((i) => {
-          const op = baseOp * (0.6 + 0.4 * Math.abs(Math.sin(t * 0.45 + i * 0.30)));
-          return (
-            <div key={i} style={{ display: "flex", alignItems: "center", flex: 1 }}>
-              <div style={{
-                width: "5px", height: "5px", borderRadius: "50%", flexShrink: 0,
-                background: `rgba(129,140,248,${op.toFixed(2)})`,
-              }} />
-              {i < 4 && <div style={{ flex: 1, height: "1px", background: `rgba(129,140,248,${(op * 0.35).toFixed(2)})` }} />}
-            </div>
-          );
-        })}
-      </div>
-      <svg width="100%" height="34" viewBox="0 0 99 13" fill="none" preserveAspectRatio="none"
-        style={{ position: "absolute", bottom: "2px", left: "2px", width: "calc(100% - 4px)" }}>
-        <defs>
-          <linearGradient id="mf2" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={`rgba(129,140,248,${active ? "0.14" : "0.07"})`} />
-            <stop offset="100%" stopColor="rgba(129,140,248,0)" />
-          </linearGradient>
-        </defs>
-        <path d={`${d} L 99 13 L 0 13 Z`} fill="url(#mf2)" />
-        <path d={d} stroke={`rgba(129,140,248,${active ? "0.55" : "0.28"})`} strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="1.5" fill={`rgba(165,180,252,${active ? "0.80" : "0.45"})`} />
-      </svg>
-    </div>
+    <svg width="100%" height="8" viewBox="0 0 100 8" preserveAspectRatio="none" style={{ display: "block" }}>
+      <line x1="0" y1="4" x2="100" y2="4" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+      <circle cx={x} cy="4" r="2" fill="rgba(129,140,248,0.45)" />
+      <circle cx={Math.max(0, x - 10)} cy="4" r="1.2" fill="rgba(129,140,248,0.20)" />
+    </svg>
   );
 }
 
-function SalesMini({ t, active }: { t: number; active: boolean }) {
-  const s = active ? 1.1 : 0.8;
-  const stages = ["Capture", "Qualify", "Respond", "Convert"];
-  const widths = [0.85, 0.64, 0.46, 0.28];
-  return (
-    <div style={{ width: "100%", height: "58px", padding: "3px 2px 2px", display: "flex", flexDirection: "column", gap: "4px" }}>
-      {stages.map((label, i) => {
-        const w = widths[i] * (0.88 + 0.12 * Math.sin(t * 0.38 + i * 0.8)) * s;
-        return (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <span style={{ fontSize: "6.5px", color: `rgba(160,168,220,${active ? "0.45" : "0.28"})`, width: "32px", flexShrink: 0, letterSpacing: "0.03em" }}>{label}</span>
-            <div style={{ flex: 1, height: "2px", borderRadius: "1px", background: "rgba(129,140,248,0.06)", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${Math.min(100, w * 100)}%`, borderRadius: "1px", background: `rgba(129,140,248,${active ? "0.50" : "0.28"})`, transition: "width 600ms ease" }} />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function OpsMini({ t, active }: { t: number; active: boolean }) {
-  const s = active ? 1.1 : 0.8;
-  const tasks = [{ label: "Workflow", fill: 0.78 }, { label: "Reporting", fill: 0.62 }, { label: "Sync", fill: 0.90 }];
-  const cp = ((t * 0.30) % 1 + 1) % 1;
-  return (
-    <div style={{ width: "100%", height: "58px", padding: "2px 2px 2px", display: "flex", flexDirection: "column", gap: "4px" }}>
-      {tasks.map((task, i) => {
-        const w = task.fill * (0.85 + 0.15 * Math.sin(t * 0.28 + i * 1.0));
-        return (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <div style={{ width: "3px", height: "3px", borderRadius: "1px", flexShrink: 0, background: `rgba(129,140,248,${active ? "0.45" : "0.22"})` }} />
-            <span style={{ fontSize: "6.5px", color: `rgba(160,168,220,${active ? "0.45" : "0.28"})`, width: "38px", flexShrink: 0, letterSpacing: "0.03em" }}>{task.label}</span>
-            <div style={{ flex: 1, height: "2px", borderRadius: "1px", background: "rgba(129,140,248,0.06)", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${Math.min(100, w * 100)}%`, borderRadius: "1px", background: `rgba(129,140,248,${active ? "0.50" : "0.28"})`, transition: "width 600ms ease" }} />
-            </div>
-          </div>
-        );
-      })}
-      <div style={{ display: "flex", alignItems: "center", gap: "3px", paddingLeft: "1px", marginTop: "2px" }}>
-        {[0, 1, 2, 3, 4, 5].map((i) => {
-          const isActive = Math.abs(cp - i / 5) < 0.18;
-          const op = isActive ? (active ? 0.60 : 0.30) : (active ? 0.18 : 0.10);
-          return <div key={i} style={{ width: "3px", height: "3px", borderRadius: "50%", background: `rgba(129,140,248,${op})`, transition: "background 300ms ease" }} />;
-        })}
-        <div style={{ flex: 1, height: "1px", background: `rgba(129,140,248,${active ? "0.10" : "0.05"})` }} />
-        <span style={{ fontSize: "5.5px", color: `rgba(129,140,248,${active ? "0.38" : "0.18"})`, letterSpacing: "0.06em" }}>SYNC</span>
-      </div>
-    </div>
-  );
-}
-
-/* ─── AI Core (refined) ──────────────────────────────────────────── */
-function AICore({ t }: { t: number }) {
-  const pulse = 0.5 + 0.5 * Math.sin(t * 0.65);
-  const rot = (t * 8) % 360;
-
+/* ─── Pulse indicator ────────────────────────────────────────────── */
+function Pulse({ t }: { t: number }) {
+  const v = 0.50 + 0.30 * Math.abs(Math.sin(t * 0.9));
   return (
     <div style={{
-      width: "120px", height: "120px",
-      position: "relative",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      flexShrink: 0,
-    }}>
-      {/* Single soft outer ring */}
-      <div aria-hidden="true" style={{
-        position: "absolute",
-        width: `${130 + pulse * 8}px`, height: `${130 + pulse * 8}px`,
-        borderRadius: "50%",
-        border: `1px solid rgba(129,140,248,${(0.05 + pulse * 0.04).toFixed(2)})`,
-        left: "50%", top: "50%",
-        transform: "translate(-50%,-50%)",
-        pointerEvents: "none",
-      }} />
-
-      {/* Rotating dashed ring — very subtle */}
-      <div aria-hidden="true" style={{
-        position: "absolute", inset: "-6px",
-        borderRadius: "50%",
-        border: "1px dashed rgba(129,140,248,0.08)",
-        transform: `rotate(${rot}deg)`,
-      }} />
-
-      {/* Glass disc */}
-      <div style={{
-        width: "120px", height: "120px",
-        borderRadius: "50%",
-        background: "radial-gradient(circle at 40% 35%,rgba(99,102,241,0.10) 0%,rgba(6,6,18,0.90) 60%)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        border: "1px solid rgba(129,140,248,0.14)",
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.05), 0 0 28px rgba(99,102,241,${(0.06 + pulse * 0.04).toFixed(2)})`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        flexDirection: "column", gap: "5px",
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        {/* Top shimmer */}
-        <span aria-hidden="true" style={{
-          position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-          background: "linear-gradient(to right,transparent,rgba(165,180,252,0.14),transparent)",
-        }} />
-
-        {/* Inner grid — very faint */}
-        <svg width="70" height="70" viewBox="0 0 70 70" fill="none" style={{ position: "absolute", opacity: 0.10 }}>
-          {[17, 35, 53].map(x => <line key={`v${x}`} x1={x} y1="0" x2={x} y2="70" stroke="rgba(129,140,248,1)" strokeWidth="0.5" />)}
-          {[17, 35, 53].map(y => <line key={`h${y}`} x1="0" y1={y} x2="70" y2={y} stroke="rgba(129,140,248,1)" strokeWidth="0.5" />)}
-          <circle cx="35" cy="35" r="14" stroke="rgba(129,140,248,1)" strokeWidth="0.5" fill="none" />
-        </svg>
-
-        {/* Center dot */}
-        <div style={{
-          width: "7px", height: "7px", borderRadius: "50%",
-          background: `rgba(165,180,252,${(0.55 + pulse * 0.20).toFixed(2)})`,
-          boxShadow: `0 0 ${6 + pulse * 6}px rgba(99,102,241,0.35)`,
-        }} />
-
-        <span style={{
-          fontSize: "8px", fontWeight: 600, letterSpacing: "0.10em",
-          color: "rgba(165,180,252,0.55)", textTransform: "uppercase",
-          lineHeight: 1,
-        }}>
-          AI Core
-        </span>
-      </div>
-    </div>
+      width: "5px", height: "5px", borderRadius: "50%", flexShrink: 0,
+      background: `rgba(129,140,248,${v.toFixed(2)})`,
+    }} />
   );
 }
 
-/* ─── Domain node (refined) ──────────────────────────────────────── */
-function DomainNode({
-  domain,
-  active,
-  hovered,
-  t,
-  onActivate,
-}: {
-  domain: Domain;
-  active: boolean;
-  hovered: boolean;
-  t: number;
-  onActivate: () => void;
+/* ─── Hero block ─────────────────────────────────────────────────── */
+function HeroBlock({ t, isHovered, onHover }: {
+  t: number; isHovered: boolean; onHover: (v: boolean) => void;
 }) {
-  const emphasis = active || hovered;
   return (
     <div
-      onMouseEnter={onActivate}
-      onClick={onActivate}
+      onMouseEnter={() => onHover(true)}
+      onMouseLeave={() => onHover(false)}
       style={{
+        borderRadius: "16px",
+        background: "rgba(8,8,18,0.82)",
+        border: `1px solid ${isHovered ? "rgba(129,140,248,0.20)" : "rgba(255,255,255,0.07)"}`,
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        boxShadow: isHovered
+          ? "inset 0 1px 0 rgba(255,255,255,0.05), 0 20px 50px rgba(0,0,0,0.38)"
+          : "inset 0 1px 0 rgba(255,255,255,0.03), 0 10px 32px rgba(0,0,0,0.28)",
+        padding: "32px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "24px",
+        transform: isHovered ? "translateY(-2px)" : "translateY(0)",
+        transition: "all 300ms cubic-bezier(0.22,1,0.36,1)",
         position: "relative",
-        borderRadius: "14px",
-        background: emphasis ? "rgba(10,10,26,0.88)" : "rgba(6,6,18,0.70)",
-        backdropFilter: "blur(18px)",
-        WebkitBackdropFilter: "blur(18px)",
-        border: emphasis
-          ? `1px solid rgba(129,140,248,0.22)`
-          : `1px solid rgba(129,140,248,0.08)`,
-        boxShadow: emphasis
-          ? `inset 0 1px 0 rgba(255,255,255,0.05), 0 12px 36px rgba(0,0,0,0.30), 0 0 16px rgba(99,102,241,0.07)`
-          : `inset 0 1px 0 rgba(255,255,255,0.02), 0 4px 18px rgba(0,0,0,0.18)`,
-        transform: emphasis ? "translateY(-2px) scale(1.010)" : "translateY(0) scale(1)",
-        transition: "all 400ms cubic-bezier(0.22,1,0.36,1)",
-        cursor: "pointer",
         overflow: "hidden",
-        padding: "14px 14px 12px",
-        width: "190px",
+        cursor: "default",
       }}
     >
-      {/* Top shimmer */}
+      {/* Top line */}
       <span aria-hidden="true" style={{
         position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-        background: emphasis
-          ? "linear-gradient(to right,transparent,rgba(165,180,252,0.18),transparent)"
-          : "linear-gradient(to right,transparent,rgba(165,180,252,0.05),transparent)",
-        transition: "background 400ms ease",
+        background: "linear-gradient(to right,transparent,rgba(165,180,252,0.12),transparent)",
         pointerEvents: "none",
       }} />
 
-      {/* Mini viz */}
-      <div style={{
-        borderRadius: "8px",
-        background: "rgba(129,140,248,0.03)",
-        border: "1px solid rgba(129,140,248,0.06)",
-        marginBottom: "10px",
-        overflow: "hidden",
-        padding: "7px 7px 4px",
-      }}>
-        {domain.id === "marketing"  && <MarketingMini t={t} active={emphasis} />}
-        {domain.id === "sales"      && <SalesMini     t={t} active={emphasis} />}
-        {domain.id === "operations" && <OpsMini       t={t} active={emphasis} />}
-      </div>
-
-      {/* Title */}
-      <p style={{
-        fontSize: "11.5px",
-        fontWeight: 600,
-        color: emphasis ? "rgba(230,233,255,0.92)" : "rgba(180,186,220,0.55)",
-        letterSpacing: "-0.005em",
-        lineHeight: 1.3,
-        margin: 0,
-        transition: "color 400ms ease",
-      }}>
-        {domain.short}
-      </p>
-      <p style={{
-        fontSize: "9.5px",
-        fontWeight: 400,
-        color: emphasis ? "rgba(150,158,210,0.55)" : "rgba(130,138,190,0.35)",
-        margin: "2px 0 0",
-        lineHeight: 1.4,
-        transition: "color 400ms ease",
-      }}>
-        Systems
-      </p>
-
-      {/* Active indicator */}
-      <div style={{
-        position: "absolute", bottom: "9px", right: "11px",
-        width: "4px", height: "4px", borderRadius: "50%",
-        background: active ? "rgba(129,140,248,0.65)" : "rgba(129,140,248,0.15)",
-        transition: "all 400ms ease",
-      }} />
-    </div>
-  );
-}
-
-/* ─── Contextual content panel (refined) ────────────────────────── */
-function ContentPanel({ domain }: { domain: Domain }) {
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={domain.id}
-        initial={{ opacity: 0, y: 6, filter: "blur(3px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        exit={{ opacity: 0, y: -6, filter: "blur(3px)" }}
-        transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-        style={{
-          borderRadius: "14px",
-          background: "rgba(6,6,18,0.70)",
-          backdropFilter: "blur(18px)",
-          WebkitBackdropFilter: "blur(18px)",
-          border: "1px solid rgba(129,140,248,0.10)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03), 0 6px 24px rgba(0,0,0,0.20)",
-          padding: "22px 24px",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Top shimmer */}
-        <span aria-hidden="true" style={{
-          position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-          background: "linear-gradient(to right,transparent,rgba(165,180,252,0.10),transparent)",
-          pointerEvents: "none",
-        }} />
-
-        <p style={{ fontSize: "9.5px", fontWeight: 600, letterSpacing: "0.10em", textTransform: "uppercase", color: "rgba(129,140,248,0.50)", margin: "0 0 8px" }}>
-          Active System
-        </p>
-        <h3 style={{ fontSize: "17px", fontWeight: 500, color: "rgba(225,228,255,0.92)", letterSpacing: "-0.015em", lineHeight: 1.25, margin: "0 0 10px" }}>
-          {domain.title}
+      {/* Header */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+          <Pulse t={t} />
+          <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.10em", textTransform: "uppercase", color: "rgba(129,140,248,0.50)" }}>
+            Core System
+          </span>
+        </div>
+        <h3 style={{
+          fontSize: "clamp(18px,1.9vw,22px)", fontWeight: 500,
+          letterSpacing: "-0.022em", lineHeight: 1.25,
+          color: "#f0f0f5", margin: 0,
+        }}>
+          AI Systems That Replace<br />Manual Work
         </h3>
-        <p style={{ fontSize: "13px", fontWeight: 300, color: "rgba(170,176,215,0.65)", lineHeight: 1.68, margin: "0 0 18px" }}>
-          {domain.description}
+        <p style={{
+          fontSize: "13px", fontWeight: 300, lineHeight: 1.65,
+          color: "rgba(255,255,255,0.80)", margin: 0,
+          maxWidth: "340px",
+        }}>
+          Automate marketing, sales, and operations with systems designed to execute consistently and efficiently.
         </p>
-
-        {/* Capabilities */}
-        <div style={{ marginBottom: "16px" }}>
-          <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(129,140,248,0.40)", margin: "0 0 8px" }}>
-            Capabilities
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            {domain.capabilities.map((cap) => (
-              <div key={cap} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "3px", height: "3px", borderRadius: "50%", background: "rgba(129,140,248,0.40)", flexShrink: 0 }} />
-                <span style={{ fontSize: "12px", color: "rgba(170,176,215,0.60)", letterSpacing: "0.01em" }}>{cap}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Results */}
-        <div style={{ borderTop: "1px solid rgba(129,140,248,0.07)", paddingTop: "14px" }}>
-          <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(129,140,248,0.40)", margin: "0 0 8px" }}>
-            Results
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-            {domain.results.map((r) => (
-              <div key={r} style={{
-                padding: "5px 10px", borderRadius: "9999px",
-                background: "rgba(129,140,248,0.06)",
-                border: "1px solid rgba(129,140,248,0.10)",
-              }}>
-                <span style={{ fontSize: "11px", fontWeight: 500, color: "rgba(190,196,235,0.72)", letterSpacing: "0.01em" }}>{r}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-/* ─── Desktop composition ────────────────────────────────────────── */
-function DesktopComposition({ t, activeDomain, setHoveredDomain, hoveredDomain }: {
-  t: number;
-  activeDomain: DomainId;
-  hoveredDomain: DomainId | null;
-  setHoveredDomain: (id: DomainId | null) => void;
-}) {
-  const effectiveDomain = hoveredDomain ?? activeDomain;
-  const active: Domain = DOMAINS.find(d => d.id === effectiveDomain) ?? DOMAINS[0];
-
-  return (
-    <div style={{ display: "flex", gap: "36px", alignItems: "flex-start", justifyContent: "center" }}>
-
-      {/* Left: orbital composition */}
-      <div style={{ position: "relative", width: "500px", height: "400px", flexShrink: 0 }}>
-
-        {/* Domain: Marketing — upper left */}
-        <div style={{ position: "absolute", top: "16px", left: "0px" }}>
-          <DomainNode
-            domain={DOMAINS[0]}
-            active={activeDomain === "marketing"}
-            hovered={hoveredDomain === "marketing"}
-            t={t}
-            onActivate={() => setHoveredDomain("marketing")}
-          />
-        </div>
-
-        {/* Domain: Sales — upper right */}
-        <div style={{ position: "absolute", top: "16px", right: "0px" }}>
-          <DomainNode
-            domain={DOMAINS[1]}
-            active={activeDomain === "sales"}
-            hovered={hoveredDomain === "sales"}
-            t={t}
-            onActivate={() => setHoveredDomain("sales")}
-          />
-        </div>
-
-        {/* Domain: Operations — bottom center */}
-        <div style={{ position: "absolute", bottom: "16px", left: "50%", transform: "translateX(-50%)" }}>
-          <DomainNode
-            domain={DOMAINS[2]}
-            active={activeDomain === "operations"}
-            hovered={hoveredDomain === "operations"}
-            t={t}
-            onActivate={() => setHoveredDomain("operations")}
-          />
-        </div>
-
-        {/* AI Core — center */}
-        <div
-          style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }}
-          onMouseEnter={() => setHoveredDomain(null)}
-        >
-          <AICore t={t} />
-        </div>
-
-        {/* Connection lines SVG */}
-        <svg
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible", pointerEvents: "none" }}
-          onMouseEnter={() => setHoveredDomain(null)}
-        >
-          {/* Marketing → Core: card center ~(95,116) → core center ~(250,200) */}
-          {(() => {
-            const isActive = effectiveDomain === "marketing";
-            const op = isActive ? 0.38 : 0.06;
-            const progress = ((t * 0.45) % 1 + 1) % 1;
-            return (
-              <g>
-                <line x1="190" y1="116" x2="250" y2="200" stroke={`rgba(129,140,248,${op})`} strokeWidth="0.8" style={{ transition: "stroke 500ms ease" }} />
-                {isActive && (
-                  <circle cx={lerp(190, 250, progress)} cy={lerp(116, 200, progress)} r="2.5" fill="rgba(165,180,252,0.70)" />
-                )}
-              </g>
-            );
-          })()}
-          {/* Sales → Core: card center ~(310,116) → core center ~(250,200) */}
-          {(() => {
-            const isActive = effectiveDomain === "sales";
-            const op = isActive ? 0.38 : 0.06;
-            const progress = ((t * 0.45 + 0.5) % 1 + 1) % 1;
-            return (
-              <g>
-                <line x1="310" y1="116" x2="250" y2="200" stroke={`rgba(129,140,248,${op})`} strokeWidth="0.8" style={{ transition: "stroke 500ms ease" }} />
-                {isActive && (
-                  <circle cx={lerp(310, 250, progress)} cy={lerp(116, 200, progress)} r="2.5" fill="rgba(165,180,252,0.70)" />
-                )}
-              </g>
-            );
-          })()}
-          {/* Operations → Core: card center ~(250,330) → core center ~(250,200) */}
-          {(() => {
-            const isActive = effectiveDomain === "operations";
-            const op = isActive ? 0.38 : 0.06;
-            const progress = ((t * 0.45 + 0.25) % 1 + 1) % 1;
-            return (
-              <g>
-                <line x1="250" y1="330" x2="250" y2="270" stroke={`rgba(129,140,248,${op})`} strokeWidth="0.8" style={{ transition: "stroke 500ms ease" }} />
-                {isActive && (
-                  <circle cx={lerp(250, 250, progress)} cy={lerp(330, 270, progress)} r="2.5" fill="rgba(165,180,252,0.70)" />
-                )}
-              </g>
-            );
-          })()}
-        </svg>
       </div>
 
-      {/* Right: contextual content panel */}
-      <div
-        style={{ flex: 1, maxWidth: "360px", paddingTop: "16px" }}
-        onMouseEnter={() => setHoveredDomain(null)}
-      >
-        <ContentPanel domain={active} />
+      {/* System visual */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {/* Central bar */}
+        <div style={{
+          padding: "10px 14px",
+          borderRadius: "9px",
+          background: "rgba(99,102,241,0.06)",
+          border: "1px solid rgba(129,140,248,0.14)",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+            <Pulse t={t} />
+            <span style={{ fontSize: "11px", fontWeight: 500, color: "rgba(200,206,255,0.85)" }}>AI Automation System</span>
+          </div>
+          <span style={{ fontSize: "8.5px", fontWeight: 600, color: "rgba(129,140,248,0.45)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Active</span>
+        </div>
+
+        {/* Three nodes */}
+        <div style={{ display: "flex", gap: "6px" }}>
+          {[
+            { label: "Marketing", sub: "Content & Campaigns" },
+            { label: "Sales", sub: "Leads & Follow-ups" },
+            { label: "Operations", sub: "Workflows & Reports" },
+          ].map((node, i) => (
+            <div key={node.label} style={{
+              flex: 1, padding: "10px 10px",
+              borderRadius: "8px",
+              background: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.05)",
+              display: "flex", flexDirection: "column", gap: "5px",
+            }}>
+              <span style={{ fontSize: "9px", fontWeight: 600, color: "rgba(175,182,215,0.65)", letterSpacing: "0.03em" }}>{node.label}</span>
+              <span style={{ fontSize: "8px", color: "rgba(130,138,190,0.35)", lineHeight: 1.4 }}>{node.sub}</span>
+              <FlowDot t={t} offset={i * 0.33} />
+            </div>
+          ))}
+        </div>
       </div>
 
+      {/* 3 inline points */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+        {[
+          "Automate execution",
+          "Reduce manual tasks",
+          "Improve response speed",
+        ].map((point) => (
+          <div key={point} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
+              <path d="M1.5 5L3.8 7.5L8.5 2.5" stroke="rgba(129,140,248,0.50)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span style={{ fontSize: "12px", fontWeight: 300, color: "rgba(175,182,215,0.55)" }}>{point}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Metrics */}
+      <div style={{ display: "flex", gap: "10px" }}>
+        {[
+          { value: "−18h", label: "manual work / week" },
+          { value: "+41%", label: "response speed" },
+        ].map((m) => (
+          <div key={m.label} style={{
+            flex: 1, padding: "12px 14px",
+            borderRadius: "10px",
+            background: "rgba(99,102,241,0.05)",
+            border: "1px solid rgba(129,140,248,0.09)",
+            display: "flex", flexDirection: "column", gap: "3px",
+          }}>
+            <span style={{ fontSize: "20px", fontWeight: 600, color: "rgba(200,206,255,0.90)", letterSpacing: "-0.03em", lineHeight: 1 }}>{m.value}</span>
+            <span style={{ fontSize: "9px", color: "rgba(130,138,190,0.42)", letterSpacing: "0.02em" }}>{m.label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-/* ─── Mobile composition ─────────────────────────────────────────── */
-function MobileComposition({ t, activeDomain }: {
+/* ─── Supporting module ──────────────────────────────────────────── */
+function Module({
+  t,
+  eyebrow,
+  title,
+  description,
+  points,
+  visual,
+  isHovered,
+  isDimmed,
+  onHover,
+  horizontal = false,
+}: {
   t: number;
-  activeDomain: DomainId;
+  eyebrow: string;
+  title: string;
+  description: string;
+  points: string[];
+  visual: React.ReactNode;
+  isHovered: boolean;
+  isDimmed: boolean;
+  onHover: (v: boolean) => void;
+  horizontal?: boolean;
 }) {
-  const active: Domain = DOMAINS.find(d => d.id === activeDomain) ?? DOMAINS[0];
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px" }}>
+    <div
+      onMouseEnter={() => onHover(true)}
+      onMouseLeave={() => onHover(false)}
+      style={{
+        borderRadius: "14px",
+        background: "rgba(8,8,18,0.72)",
+        border: `1px solid ${isHovered ? "rgba(129,140,248,0.18)" : "rgba(255,255,255,0.06)"}`,
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        boxShadow: isHovered
+          ? "inset 0 1px 0 rgba(255,255,255,0.04), 0 14px 40px rgba(0,0,0,0.32)"
+          : "inset 0 1px 0 rgba(255,255,255,0.02), 0 6px 20px rgba(0,0,0,0.20)",
+        padding: horizontal ? "22px 26px" : "22px",
+        display: "flex",
+        flexDirection: horizontal ? "row" : "column",
+        gap: horizontal ? "32px" : "16px",
+        alignItems: horizontal ? "center" : "flex-start",
+        transform: isHovered ? "translateY(-2px)" : "translateY(0)",
+        opacity: isDimmed ? 0.50 : 1,
+        transition: "all 280ms cubic-bezier(0.22,1,0.36,1)",
+        cursor: "default",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <span aria-hidden="true" style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+        background: "linear-gradient(to right,transparent,rgba(165,180,252,0.08),transparent)",
+        pointerEvents: "none",
+      }} />
 
-      {/* AI Core */}
-      <AICore t={t} />
+      {/* Text */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: horizontal ? "0 0 auto" : undefined, maxWidth: horizontal ? "220px" : undefined }}>
+        <span style={{ fontSize: "8.5px", fontWeight: 600, letterSpacing: "0.10em", textTransform: "uppercase", color: "rgba(129,140,248,0.42)" }}>
+          {eyebrow}
+        </span>
+        <h4 style={{ fontSize: "14.5px", fontWeight: 500, letterSpacing: "-0.016em", color: "#f0f0f5", margin: 0, lineHeight: 1.3 }}>
+          {title}
+        </h4>
+        <p style={{ fontSize: "12px", fontWeight: 300, color: "rgba(255,255,255,0.80)", margin: 0, lineHeight: 1.60 }}>
+          {description}
+        </p>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "2px" }}>
+          {points.map((p) => (
+            <span key={p} style={{
+              fontSize: "9px", fontWeight: 500,
+              color: "rgba(165,180,252,0.50)",
+              padding: "2px 8px",
+              borderRadius: "4px",
+              background: "rgba(99,102,241,0.06)",
+              border: "1px solid rgba(129,140,248,0.09)",
+            }}>{p}</span>
+          ))}
+        </div>
+      </div>
 
-      {/* Connector */}
-      <div style={{ width: "1px", height: "16px", background: "rgba(129,140,248,0.12)" }} />
+      {/* Visual */}
+      <div style={{ flex: 1, width: horizontal ? undefined : "100%" }}>
+        {visual}
+      </div>
+    </div>
+  );
+}
 
-      {/* Domain tabs */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", maxWidth: "340px" }}>
-        {DOMAINS.map((domain) => {
-          const isActive = activeDomain === domain.id;
+/* ─── Marketing visual ───────────────────────────────────────────── */
+function MarketingVisual({ t }: { t: number }) {
+  const steps = ["Plan", "Create", "Review", "Publish"];
+  const active = Math.floor((t * 0.30) % steps.length);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+        {steps.map((s, i) => {
+          const isA = i === active;
+          const isP = i < active;
           return (
-            <div
-              key={domain.id}
-              style={{
-                borderRadius: "12px",
-                background: isActive ? "rgba(10,10,26,0.88)" : "rgba(6,6,18,0.65)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                border: isActive ? "1px solid rgba(129,140,248,0.20)" : "1px solid rgba(129,140,248,0.07)",
-                boxShadow: isActive
-                  ? "inset 0 1px 0 rgba(255,255,255,0.04), 0 6px 22px rgba(0,0,0,0.26)"
-                  : "inset 0 1px 0 rgba(255,255,255,0.02), 0 3px 12px rgba(0,0,0,0.16)",
-                padding: "12px 16px",
-                transition: "all 400ms cubic-bezier(0.22,1,0.36,1)",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <span aria-hidden="true" style={{
-                position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-                background: isActive
-                  ? "linear-gradient(to right,transparent,rgba(165,180,252,0.14),transparent)"
-                  : "linear-gradient(to right,transparent,rgba(165,180,252,0.04),transparent)",
-                pointerEvents: "none",
-              }} />
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{
-                  fontSize: "13px", fontWeight: 500,
-                  color: isActive ? "rgba(225,228,255,0.90)" : "rgba(170,176,215,0.50)",
-                  transition: "color 400ms ease",
-                }}>
-                  {domain.title}
-                </span>
-                <div style={{
-                  width: "5px", height: "5px", borderRadius: "50%", flexShrink: 0,
-                  background: isActive ? "rgba(129,140,248,0.60)" : "rgba(129,140,248,0.15)",
-                  transition: "all 400ms ease",
-                }} />
+            <div key={s} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <div style={{
+                padding: "3px 8px", borderRadius: "5px",
+                background: isA ? "rgba(99,102,241,0.16)" : isP ? "rgba(99,102,241,0.07)" : "rgba(255,255,255,0.025)",
+                border: isA ? "1px solid rgba(129,140,248,0.28)" : "1px solid rgba(255,255,255,0.04)",
+                transition: "all 350ms ease",
+              }}>
+                <span style={{ fontSize: "8.5px", fontWeight: 500, color: isA ? "rgba(200,206,255,0.90)" : "rgba(140,148,190,0.35)", transition: "color 350ms ease" }}>{s}</span>
               </div>
+              {i < steps.length - 1 && (
+                <svg width="6" height="6" viewBox="0 0 6 6" fill="none">
+                  <path d="M1 3H5M5 3L3 1M5 3L3 5" stroke="rgba(129,140,248,0.20)" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
             </div>
           );
         })}
       </div>
+      <FlowDot t={t} />
+    </div>
+  );
+}
 
-      {/* Content panel */}
-      <div style={{ width: "100%", maxWidth: "360px" }}>
-        <ContentPanel domain={active} />
+/* ─── Sales visual ───────────────────────────────────────────────── */
+function SalesVisual({ t }: { t: number }) {
+  const stages = [
+    { label: "Captured", pct: 100 },
+    { label: "Qualified", pct: 65 },
+    { label: "Booked", pct: 38 },
+  ];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+      {stages.map((s, i) => {
+        const w = s.pct * (0.88 + 0.12 * Math.abs(Math.sin(t * 0.35 + i * 0.7)));
+        return (
+          <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "8px", color: "rgba(140,148,190,0.40)", width: "48px", flexShrink: 0 }}>{s.label}</span>
+            <div style={{ flex: 1, height: "3px", borderRadius: "2px", background: "rgba(255,255,255,0.04)", overflow: "hidden" }}>
+              <div style={{
+                height: "100%", width: `${w}%`, borderRadius: "2px",
+                background: `rgba(129,140,248,${0.30 + (1 - i * 0.12) * 0.25})`,
+                transition: "width 500ms ease",
+              }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Operations visual ──────────────────────────────────────────── */
+function OpsVisual({ t }: { t: number }) {
+  const tasks = [
+    { label: "Report generation", done: true },
+    { label: "Data sync", done: true },
+    { label: "Status updates", done: false },
+  ];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+      {tasks.map((task, i) => {
+        const isRunning = !task.done && i === tasks.filter(x => x.done).length;
+        return (
+          <div key={task.label} style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+            <div style={{
+              width: "11px", height: "11px", borderRadius: "3px", flexShrink: 0,
+              background: task.done ? "rgba(99,102,241,0.16)" : "rgba(255,255,255,0.025)",
+              border: task.done ? "1px solid rgba(129,140,248,0.26)" : isRunning ? "1px solid rgba(129,140,248,0.16)" : "1px solid rgba(255,255,255,0.05)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {task.done && (
+                <svg width="6" height="6" viewBox="0 0 6 6" fill="none">
+                  <path d="M1 3L2.4 4.8L5 1.2" stroke="rgba(165,180,252,0.75)" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+              {isRunning && <div style={{ width: "3px", height: "3px", borderRadius: "50%", background: "rgba(129,140,248,0.55)" }} />}
+            </div>
+            <span style={{
+              fontSize: "9px",
+              color: task.done ? "rgba(175,182,215,0.40)" : isRunning ? "rgba(200,206,255,0.75)" : "rgba(130,138,190,0.30)",
+              textDecoration: task.done ? "line-through" : "none",
+            }}>{task.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Mobile card ────────────────────────────────────────────────── */
+function MobileCard({ eyebrow, title, description, points, visual }: {
+  eyebrow: string; title: string; description: string; points: string[]; visual: React.ReactNode;
+}) {
+  return (
+    <div style={{
+      borderRadius: "14px",
+      background: "rgba(8,8,18,0.75)",
+      border: "1px solid rgba(255,255,255,0.07)",
+      backdropFilter: "blur(16px)",
+      WebkitBackdropFilter: "blur(16px)",
+      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03), 0 6px 20px rgba(0,0,0,0.22)",
+      padding: "22px",
+      display: "flex", flexDirection: "column", gap: "14px",
+      position: "relative", overflow: "hidden",
+    }}>
+      <span aria-hidden="true" style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+        background: "linear-gradient(to right,transparent,rgba(165,180,252,0.08),transparent)",
+        pointerEvents: "none",
+      }} />
+      <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+        <span style={{ fontSize: "8.5px", fontWeight: 600, letterSpacing: "0.10em", textTransform: "uppercase", color: "rgba(129,140,248,0.42)" }}>{eyebrow}</span>
+        <h4 style={{ fontSize: "15px", fontWeight: 500, letterSpacing: "-0.016em", color: "#f0f0f5", margin: 0, lineHeight: 1.3 }}>{title}</h4>
+        <p style={{ fontSize: "12.5px", fontWeight: 300, color: "rgba(255,255,255,0.80)", margin: 0, lineHeight: 1.60 }}>{description}</p>
+      </div>
+      {visual}
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+        {points.map((p) => (
+          <span key={p} style={{
+            fontSize: "9px", fontWeight: 500,
+            color: "rgba(165,180,252,0.50)",
+            padding: "2px 8px", borderRadius: "4px",
+            background: "rgba(99,102,241,0.06)",
+            border: "1px solid rgba(129,140,248,0.09)",
+          }}>{p}</span>
+        ))}
       </div>
     </div>
   );
 }
 
-/* ─── Main section ───────────────────────────────────────────────── */
+/* ─── Main export ────────────────────────────────────────────────── */
 export function ImpactAreas() {
   const [t, setT] = useState(0);
-  const [activeDomain, setActiveDomain] = useState<DomainId>("marketing");
-  const [hoveredDomain, setHoveredDomain] = useState<DomainId | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-
-  const sectionRef = useRef<HTMLElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const headerInView = useInView(headerRef, { once: true, margin: "-60px" });
-
-  // Scroll-based domain progression
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start 0.8", "end 0.2"],
-  });
-
-  // Map scroll progress to domain index: 0→marketing, 0.33→sales, 0.66→operations
-  useEffect(() => {
-    const unsub = scrollYProgress.on("change", (v) => {
-      // Only update from scroll if user isn't hovering
-      if (hoveredDomain) return;
-      if (v < 0.38) setActiveDomain("marketing");
-      else if (v < 0.72) setActiveDomain("sales");
-      else setActiveDomain("operations");
-    });
-    return unsub;
-  }, [scrollYProgress, hoveredDomain]);
-
-  // Clear hover after 2s of no movement (let scroll take over again)
-  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const handleHover = useCallback((id: DomainId | null) => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setHoveredDomain(id);
-    if (id !== null) {
-      hoverTimeoutRef.current = setTimeout(() => setHoveredDomain(null), 2200);
-    }
-  }, []);
+  const [hovered, setHovered] = useState<ModuleId | null>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 900);
@@ -634,7 +409,8 @@ export function ImpactAreas() {
   }, []);
 
   useEffect(() => {
-    let raf: number, start: number | null = null;
+    let raf: number;
+    let start: number | null = null;
     const loop = (ts: number) => {
       if (!start) start = ts;
       setT((ts - start) / 1000);
@@ -644,115 +420,154 @@ export function ImpactAreas() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const inView = useInView(sectionRef, { once: true, margin: "-80px" });
+  const isDimmed = (id: ModuleId) => hovered !== null && hovered !== id;
 
+  /* ── Mobile ── */
+  if (isMobile) {
+    return (
+      <section aria-label="AI Systems for Business Operations" style={{ padding: "60px 20px 80px", position: "relative" }}>
+        <div aria-hidden="true" style={{
+          position: "absolute", left: "50%", top: "25%", transform: "translate(-50%,-50%)",
+          width: "500px", height: "300px", borderRadius: "9999px",
+          background: "radial-gradient(ellipse,rgba(99,102,241,0.035) 0%,transparent 70%)",
+          pointerEvents: "none", zIndex: 0,
+        }} />
+        <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: "28px" }}>
+          {/* Header */}
+          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "8px" }}>
+            <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(129,140,248,0.44)", margin: 0 }}>
+              AI Systems for Business Operations
+            </p>
+            <h2 style={{ fontSize: "clamp(22px,6vw,28px)", fontWeight: 400, letterSpacing: "-0.022em", lineHeight: 1.22, color: "#f0f0f5", margin: 0 }}>
+              Operate faster.<br />Do more with less.
+            </h2>
+            <p style={{ fontSize: "13px", fontWeight: 300, lineHeight: 1.65, color: "rgba(255,255,255,0.80)", margin: 0 }}>
+              We design AI-powered systems that automate workflows and improve how your business runs.
+            </p>
+          </div>
+
+          {/* Hero card */}
+          <MobileCard
+            eyebrow="Core System"
+            title="AI Systems That Replace Manual Work"
+            description="Automate marketing, sales, and operations with systems built to execute consistently."
+            points={["Automate execution", "Reduce manual tasks", "Improve response speed"]}
+            visual={
+              <div style={{ display: "flex", gap: "8px" }}>
+                {[{ value: "−18h", label: "manual work/wk" }, { value: "+41%", label: "response speed" }].map((m) => (
+                  <div key={m.label} style={{
+                    flex: 1, padding: "10px 12px", borderRadius: "9px",
+                    background: "rgba(99,102,241,0.05)", border: "1px solid rgba(129,140,248,0.09)",
+                    display: "flex", flexDirection: "column", gap: "2px",
+                  }}>
+                    <span style={{ fontSize: "18px", fontWeight: 600, color: "rgba(200,206,255,0.88)", letterSpacing: "-0.03em", lineHeight: 1 }}>{m.value}</span>
+                    <span style={{ fontSize: "8.5px", color: "rgba(130,138,190,0.40)" }}>{m.label}</span>
+                  </div>
+                ))}
+              </div>
+            }
+          />
+
+          <MobileCard
+            eyebrow="Marketing Automation"
+            title="Marketing Automation"
+            description="Plan, create, and publish content automatically."
+            points={["Content workflows", "Publishing systems"]}
+            visual={<MarketingVisual t={t} />}
+          />
+
+          <MobileCard
+            eyebrow="Lead Management"
+            title="Lead Systems"
+            description="Capture and convert leads without manual follow-up."
+            points={["Qualification", "Follow-ups"]}
+            visual={<SalesVisual t={t} />}
+          />
+
+          <MobileCard
+            eyebrow="Operations"
+            title="Workflow Automation"
+            description="Automate internal processes and recurring tasks."
+            points={["Reporting", "Task flows"]}
+            visual={<OpsVisual t={t} />}
+          />
+        </div>
+      </section>
+    );
+  }
+
+  /* ── Desktop ── */
   return (
-    <section
-      ref={sectionRef}
-      aria-label="How Our AI Systems Drive Business Impact"
-      style={{ position: "relative", overflow: "hidden", padding: "96px 24px 80px" }}
-    >
-      {/* Atmospheric background — very restrained */}
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <div style={{
-          position: "absolute", left: "50%", top: 0, transform: "translateX(-50%)",
-          width: "800px", height: "500px",
-          background: "radial-gradient(ellipse at 50% 0%,rgba(88,92,241,0.018) 0%,transparent 70%)",
-        }} />
-        <div style={{
-          position: "absolute", top: 0, left: "10%", right: "10%", height: "1px",
-          background: "linear-gradient(to right,transparent,rgba(129,140,248,0.08),transparent)",
-        }} />
-      </div>
+    <section aria-label="AI Systems for Business Operations" style={{ padding: "80px 20px 100px", position: "relative" }}>
+      <div aria-hidden="true" style={{
+        position: "absolute", left: "50%", top: "35%", transform: "translate(-50%,-50%)",
+        width: "800px", height: "400px", borderRadius: "9999px",
+        background: "radial-gradient(ellipse,rgba(99,102,241,0.035) 0%,transparent 70%)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
 
-      <div style={{ position: "relative", zIndex: 1, maxWidth: "1080px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1050px", margin: "0 auto", position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: "52px" }}>
 
         {/* Header */}
-        <div ref={headerRef} style={{ textAlign: "center", marginBottom: "52px" }}>
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={headerInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.50, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
-            style={{ fontSize: "10.5px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(129,140,248,0.55)", marginBottom: "14px" }}
-          >
-            AI Automation for Modern Businesses
-          </motion.p>
-
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            animate={headerInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.68, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
-            style={{ fontSize: "clamp(24px,3.8vw,44px)", fontWeight: 400, letterSpacing: "-0.025em", lineHeight: 1.18, color: "#f0f0f5", margin: "0 0 16px" }}
-          >
-            How Our AI Systems Drive Business Impact
-          </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={headerInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1], delay: 0.20 }}
-            style={{ fontSize: "clamp(13.5px,1.7vw,16px)", fontWeight: 300, lineHeight: 1.72, color: "rgba(190,196,230,0.62)", maxWidth: "540px", margin: "0 auto" }}
-          >
-            Explore how our AI-powered systems improve marketing execution, lead management, and internal operations through intelligent automation built for modern businesses.
-          </motion.p>
+        <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "10px", maxWidth: "560px", margin: "0 auto" }}>
+          <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(129,140,248,0.44)", margin: 0 }}>
+            AI Systems for Business Operations
+          </p>
+          <h2 style={{ fontSize: "clamp(24px,2.8vw,36px)", fontWeight: 400, letterSpacing: "-0.025em", lineHeight: 1.18, color: "#f0f0f5", margin: 0 }}>
+            Operate faster. Do more with less.
+          </h2>
+          <p style={{ fontSize: "clamp(13px,1.2vw,14.5px)", fontWeight: 300, lineHeight: 1.68, color: "rgba(255,255,255,0.80)", margin: 0 }}>
+            We design AI-powered systems that automate workflows and improve how your business runs.
+          </p>
         </div>
 
-        {/* Scroll progress indicator — subtle domain tabs */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.50, delay: 0.30 }}
-          style={{ display: "flex", justifyContent: "center", gap: "8px", marginBottom: "40px" }}
-        >
-          {DOMAINS.map((d) => {
-            const isActive = (hoveredDomain ?? activeDomain) === d.id;
-            return (
-              <div
-                key={d.id}
-                style={{
-                  height: "2px",
-                  width: isActive ? "28px" : "14px",
-                  borderRadius: "1px",
-                  background: isActive ? "rgba(129,140,248,0.55)" : "rgba(129,140,248,0.18)",
-                  transition: "all 400ms cubic-bezier(0.22,1,0.36,1)",
-                }}
-              />
-            );
-          })}
-        </motion.div>
+        {/* Row 1: hero (left) + stacked modules (right) */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "14px", alignItems: "stretch" }}>
+          <HeroBlock
+            t={t}
+            isHovered={hovered === "hero"}
+            onHover={(v) => setHovered(v ? "hero" : null)}
+          />
 
-        {/* Composition */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1], delay: 0.22 }}
-        >
-          {isMobile
-            ? <MobileComposition t={t} activeDomain={hoveredDomain ?? activeDomain} />
-            : <DesktopComposition t={t} activeDomain={activeDomain} hoveredDomain={hoveredDomain} setHoveredDomain={handleHover} />
-          }
-        </motion.div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <Module
+              t={t}
+              eyebrow="Marketing Automation"
+              title="Marketing Automation"
+              description="Plan, create, and publish content automatically."
+              points={["Content workflows", "Publishing systems"]}
+              visual={<MarketingVisual t={t} />}
+              isHovered={hovered === "marketing"}
+              isDimmed={isDimmed("marketing")}
+              onHover={(v) => setHovered(v ? "marketing" : null)}
+            />
+            <Module
+              t={t}
+              eyebrow="Lead Management"
+              title="Lead Systems"
+              description="Capture and convert leads without manual follow-up."
+              points={["Qualification", "Follow-ups"]}
+              visual={<SalesVisual t={t} />}
+              isHovered={hovered === "sales"}
+              isDimmed={isDimmed("sales")}
+              onHover={(v) => setHovered(v ? "sales" : null)}
+            />
+          </div>
+        </div>
 
-        {/* Benefits row */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.42 }}
-          style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px", marginTop: "44px" }}
-        >
-          {["Less manual work", "Faster execution", "Better response times", "Clearer operational visibility"].map((b) => (
-            <div key={b} style={{
-              display: "flex", alignItems: "center", gap: "6px",
-              padding: "6px 12px", borderRadius: "9999px",
-              background: "rgba(129,140,248,0.04)",
-              border: "1px solid rgba(129,140,248,0.09)",
-            }}>
-              <div style={{ width: "3px", height: "3px", borderRadius: "50%", background: "rgba(129,140,248,0.40)", flexShrink: 0 }} />
-              <span style={{ fontSize: "11.5px", fontWeight: 400, color: "rgba(170,176,215,0.60)", letterSpacing: "0.02em", whiteSpace: "nowrap" }}>{b}</span>
-            </div>
-          ))}
-        </motion.div>
-
+        {/* Row 2: operations (horizontal) */}
+        <Module
+          t={t}
+          eyebrow="Operations"
+          title="Workflow Automation"
+          description="Automate internal processes and recurring tasks."
+          points={["Reporting", "Task flows"]}
+          visual={<OpsVisual t={t} />}
+          isHovered={hovered === "operations"}
+          isDimmed={isDimmed("operations")}
+          onHover={(v) => setHovered(v ? "operations" : null)}
+          horizontal
+        />
       </div>
     </section>
   );

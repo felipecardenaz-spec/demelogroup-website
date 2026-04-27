@@ -159,7 +159,7 @@ function MetricValue({ metric, t }: { metric: typeof METRIC_POOL[0]; t: number }
       </span>
       <span style={{
         fontSize:"9.5px",fontWeight:400,
-        color:"rgba(160,168,220,0.60)",
+        color:"rgba(255,255,255,0.80)",
         letterSpacing:"0.04em",lineHeight:1.3,
         textTransform:"uppercase",
       }}>
@@ -503,9 +503,9 @@ export function Hero() {
 
   return (
     <section ref={sectionRef} aria-label="Hero" style={{
-      position:"relative", overflow:"hidden", minHeight:isMobile?"80vh":"100vh",
-      display:"flex", flexDirection:"column", alignItems:"center",
-      marginTop:"-81px", paddingTop:"81px", paddingBottom:"0px",
+      position:"relative", overflow:"hidden", minHeight:isMobile?"100vh":"100vh",
+      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+       paddingBottom:"0px",
     }}>
       {/* Atmospheric glow overlay */}
       <motion.div aria-hidden="true" initial={{opacity:0}} animate={{opacity:1}} transition={{duration:2.4,ease:"easeOut"}}
@@ -532,7 +532,7 @@ export function Hero() {
       {/* Hero content */}
       <div style={{
         position:"relative",zIndex:2,maxWidth:"1280px",width:"100%",
-        margin:"0 auto",padding:"80px 24px 48px",
+        margin:"0 auto",padding:"0 24px",
         textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",
         pointerEvents:"none",
       }}>

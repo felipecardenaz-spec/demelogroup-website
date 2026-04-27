@@ -85,7 +85,7 @@ export function Navbar() {
                   textDecoration: "none",
                   transition: "background 0.2s, color 0.2s",
                   background: isActive(link.href) ? "rgba(255,255,255,0.08)" : "transparent",
-                  color: isActive(link.href) ? "#f5f5f7" : "#a1a1aa",
+                  color: isActive(link.href) ? "#f5f5f7" : "rgba(255,255,255,0.80)",
                   boxShadow: isActive(link.href) ? "inset 0 1px 0 0 rgba(255,255,255,0.06)" : "none",
                 }}
                 onMouseEnter={(e) => {
@@ -97,7 +97,7 @@ export function Navbar() {
                 onMouseLeave={(e) => {
                   if (!isActive(link.href)) {
                     (e.currentTarget as HTMLElement).style.background = "transparent";
-                    (e.currentTarget as HTMLElement).style.color = "#a1a1aa";
+                    (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.80)";
                   }
                 }}
               >
@@ -180,7 +180,7 @@ export function Navbar() {
                     fontSize: "15px",
                     fontWeight: 400,
                     textDecoration: "none",
-                    color: isActive(link.href) ? "#f5f5f7" : "#a1a1aa",
+                    color: isActive(link.href) ? "#f5f5f7" : "rgba(255,255,255,0.80)",
                     background: isActive(link.href) ? "rgba(255,255,255,0.06)" : "transparent",
                     transition: "background 0.15s, color 0.15s",
                   }}

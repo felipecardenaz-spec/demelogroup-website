@@ -140,7 +140,7 @@ function StatCard({
         fontWeight: 400,
         letterSpacing: "0.04em",
         textTransform: "uppercase",
-        color: "rgba(161,161,170,0.75)",
+        color: "rgba(255,255,255,0.80)",
         lineHeight: 1.4,
       }}>
         {label}

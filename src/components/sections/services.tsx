@@ -25,50 +25,51 @@ interface ServiceBlock {
 /* ─── Data ─────────────────────────────────────────────────────── */
 const BLOCKS: ServiceBlock[] = [
   {
-    eyebrow: "For startups and businesses",
-    heading: "Software Development",
+    eyebrow: "Custom Software Systems",
+    heading: "Software that streamlines how your business operates",
     description:
-      "Custom software development for startups and SMBs ready to streamline operations, launch faster, and scale with confidence. We deliver secure, scalable solutions that reduce complexity and modernize outdated systems.",
-    primaryCta: "Start Your Project",
+      "Custom platforms, portals, dashboards, and internal tools built to reduce manual work, connect your processes, and create a scalable foundation for automation.",
+    primaryCta: "Build Your System",
     secondaryCta: "View Our Work",
     featured: {
-      title: "Business Software Solutions",
-      description: "Tailored software built to streamline processes and improve efficiency.",
+      title: "Business Software Platforms",
+      description: "Tailored systems for operations, workflows, data visibility, and team efficiency.",
       bullets: [
-        "CRM Systems",
-        "HR Management Systems",
-        "Inventory Management Systems",
+        "Internal Platforms",
         "Client Portals",
-        "ERP Systems",
+        "CRM & Operations Tools",
+        "Admin Dashboards",
+        "AI-Ready Workflows",
       ],
       visual: "software",
     },
     supportCards: [
-      { title: "Streamline Operations", description: "Simplify your workflows and make your business run smoother.", visual: "top", variant: "software" },
-      { title: "Transparent Processes", description: "Clear workflows that foster trust and partnership.", visual: "bottom", variant: "software" },
+      { title: "Operational Efficiency", description: "Replace fragmented tools with systems designed around your process.", visual: "top", variant: "software" },
+      { title: "Transparent Delivery", description: "Clear communication, structured milestones, and reliable execution.", visual: "bottom", variant: "software" },
     ],
   },
   {
-    eyebrow: "For startups and businesses",
-    heading: "Mobile App Development",
+    eyebrow: "Mobile Product Development",
+    heading: "Mobile apps designed for real user adoption",
     description:
-      "Mobile app development services for startups and SMBs ready to increase customer engagement and improve operational efficiency. We deliver scalable, high-performance apps that simplify workflows and drive sustainable growth.",
-    primaryCta: "Start Your Project",
+      "High-performance mobile applications built to validate ideas, attract early users, and scale with your business. Designed for engagement, built for reliability.",
+    primaryCta: "Build Your App",
     secondaryCta: "View Our Work",
     featured: {
       title: "Mobile App Solutions",
-      description: "Scalable mobile applications designed to validate ideas, attract early users, and accelerate product-market fit.",
+      description: "Scalable mobile products designed to engage users and support business growth.",
       bullets: [
-        "Social Networking Apps",
+        "Consumer & B2B Apps",
+        "On-Demand Platforms",
+        "Subscription Products",
         "Fitness & Wellness Apps",
-        "On-Demand Service Platforms",
-        "Subscription-Based Apps",
+        "Cross-Platform (iOS & Android)",
       ],
       visual: "mobile",
     },
     supportCards: [
-      { title: "Market Differentiation", description: "Stand out with a dedicated mobile presence.", visual: "top", variant: "mobile" },
-      { title: "Cross-Platform Efficiency", description: "Optimized development strategies to deliver consistent performance across iOS and Android.", visual: "bottom", variant: "mobile" },
+      { title: "Market Differentiation", description: "Stand out with a dedicated mobile presence built for your audience.", visual: "top", variant: "mobile" },
+      { title: "Cross-Platform Efficiency", description: "Consistent performance across iOS and Android from a single codebase.", visual: "bottom", variant: "mobile" },
     ],
   },
 ];
@@ -377,8 +378,8 @@ function FeaturedCard({ data, active }: { data: ServiceBlock["featured"]; active
   );
 }
 
-/* ─── Transparent Processes Card ───────────────────────────────── */
-function TransparentProcessesCard({ delay, active }: { delay: number; active: boolean }) {
+/* ─── Transparent Delivery Card ────────────────────────────────── */
+function TransparentDeliveryCard({ title, description, delay, active }: { title: string; description: string; delay: number; active: boolean }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -503,16 +504,16 @@ function TransparentProcessesCard({ delay, active }: { delay: number; active: bo
           margin: "0 0 6px",
           lineHeight: 1.3,
         }}>
-          Transparent Processes
+          {title}
         </h4>
         <p style={{
           fontSize: "12px",
           fontWeight: 400,
           lineHeight: 1.65,
-          color: "rgba(255,255,255,0.70)",
+          color: "rgba(255,255,255,0.80)",
           margin: 0,
         }}>
-          Clear workflows that foster trust and partnership.
+          {description}
         </p>
       </div>
     </motion.div>
@@ -799,10 +800,12 @@ function ServiceBlock({ block, index }: { block: ServiceBlock; index: number }) 
         {/* Right: support cards */}
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {block.supportCards.map((card, i) => {
-            if (card.title === "Transparent Processes") {
+            if (card.title === "Transparent Processes" || card.title === "Transparent Delivery") {
               return (
-                <TransparentProcessesCard
+                <TransparentDeliveryCard
                   key={card.title}
+                  title={card.title}
+                  description={card.description}
                   delay={0.34 + i * 0.10}
                   active={inView}
                 />
@@ -831,25 +834,103 @@ function ServiceBlock({ block, index }: { block: ServiceBlock; index: number }) 
   );
 }
 
+/* ─── Section Header ────────────────────────────────────────────── */
+function SectionHeader() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 24 }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+      transition={{ duration: 0.80, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        textAlign: "center",
+        maxWidth: "720px",
+        margin: "0 auto 72px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "14px",
+      }}
+    >
+      {/* Eyebrow */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+        <span style={{
+          display: "inline-block",
+          width: "20px", height: "1px",
+          background: "rgba(129,140,248,0.50)",
+        }} />
+        <span style={{
+          fontSize: "10px", fontWeight: 600,
+          letterSpacing: "0.14em", textTransform: "uppercase",
+          color: "rgba(129,140,248,0.75)",
+        }}>
+          Software, Apps &amp; AI-Ready Systems
+        </span>
+        <span style={{
+          display: "inline-block",
+          width: "20px", height: "1px",
+          background: "rgba(129,140,248,0.50)",
+        }} />
+      </div>
+
+      {/* Title */}
+      <h2 style={{
+        fontSize: "clamp(26px, 3.5vw, 40px)",
+        fontWeight: 500,
+        letterSpacing: "-0.028em",
+        lineHeight: 1.18,
+        color: "#f0f0f5",
+        margin: 0,
+      }}>
+        Custom digital products built for<br />modern operations
+      </h2>
+
+      {/* Subtitle */}
+      <p style={{
+        fontSize: "clamp(14px, 1.4vw, 16px)",
+        fontWeight: 300,
+        lineHeight: 1.72,
+        color: "rgba(255,255,255,0.80)",
+        margin: "0 auto",
+        maxWidth: "580px",
+      }}>
+        From internal platforms to mobile applications, we build scalable software systems designed to streamline workflows, improve user experience, and support AI-powered business automation.
+      </p>
+    </motion.div>
+  );
+}
+
 /* ─── Section ───────────────────────────────────────────────────── */
 export function Services() {
   return (
     <section
       aria-label="Services"
-      style={{ padding: "0 20px 100px", position: "relative" }}
+      style={{ padding: "80px 20px 100px", position: "relative" }}
     >
-      {/* Section ambient glow */}
+      {/* Atmospheric glows */}
       <div aria-hidden="true" style={{
         position: "absolute",
-        left: "50%", top: "30%",
+        left: "50%", top: "15%",
         transform: "translate(-50%, -50%)",
-        width: "800px", height: "400px",
+        width: "900px", height: "500px",
         borderRadius: "9999px",
-        background: "radial-gradient(ellipse, rgba(99,102,241,0.05) 0%, transparent 70%)",
+        background: "radial-gradient(ellipse, rgba(99,102,241,0.06) 0%, transparent 65%)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
+      <div aria-hidden="true" style={{
+        position: "absolute",
+        left: "50%", top: "65%",
+        transform: "translate(-50%, -50%)",
+        width: "700px", height: "400px",
+        borderRadius: "9999px",
+        background: "radial-gradient(ellipse, rgba(139,92,246,0.04) 0%, transparent 65%)",
         pointerEvents: "none", zIndex: 0,
       }} />
 
       <div style={{ maxWidth: "1000px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+        <SectionHeader />
         {BLOCKS.map((block, i) => (
           <ServiceBlock key={block.heading} block={block} index={i} />
         ))}

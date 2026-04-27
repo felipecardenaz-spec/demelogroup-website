@@ -102,7 +102,7 @@ export function LogoCarousel() {
           marginTop: "10px",
           fontSize: "clamp(14px, 2vw, 16px)",
           fontWeight: 400,
-          color: "rgba(161,161,170,0.80)",
+          color: "rgba(255,255,255,0.80)",
           lineHeight: 1.6,
           margin: "10px 0 0",
         }}>

@@ -54,10 +54,9 @@ export default function RootLayout({
       className={`${fontSans.variable} ${fontMono.variable} antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-bg-primary text-text-primary font-sans">
+      <body className="min-h-screen bg-bg-primary text-text-primary font-sans overflow-x-clip">
         <Navbar />
-        {/* Offset for fixed navbar height (~56px) + 25px gap */}
-        <main className="flex-1 pt-[81px]">{children}</main>
+        <main className="flex-1">{children}</main>
         {/* Future: <Footer /> */}
       </body>
     </html>
