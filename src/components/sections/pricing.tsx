@@ -1,493 +1,588 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 
-/* ─── Engagement model data ─────────────────────────────────────── */
+/* ─── Data ──────────────────────────────────────────────────────── */
 const MODELS = [
   {
     id: "launch",
-    label: "Focused launch",
+    label: "Launch System",
     title: "Launch System",
-    bestFor: "MVPs, first automations, and focused digital products",
-    investment: "Starting from $5k–$15k",
-    description:
-      "A focused engagement for companies that need to validate an idea, automate one important workflow, or launch a lean digital product.",
+    bestFor: "MVPs and focused automation",
+    description: "Build a lean system to validate ideas or automate one critical workflow.",
+    investment: "$5k – $15k",
     includes: [
-      "Workflow or product discovery",
-      "Core design and development",
+      "Core workflow or product",
       "Essential integrations",
-      "Launch-ready implementation",
+      "Clean UI and structure",
+      "Launch-ready delivery",
     ],
-    highlighted: false,
+    metrics: [
+      { label: "Faster execution" },
+      { label: "Reduced manual effort" },
+    ],
   },
   {
     id: "growth",
-    label: "Most common",
+    label: "Growth System",
     title: "Growth System",
-    bestFor: "Growing businesses ready to connect workflows and scale operations",
-    investment: "Typical range $15k–$40k",
-    description:
-      "A more complete engagement for teams that need connected systems across sales, marketing, operations, dashboards, or customer experiences.",
+    bestFor: "Scaling workflows and connected systems",
+    description: "Build connected systems across sales, marketing, and operations.",
+    investment: "$15k – $40k",
     includes: [
       "Multi-workflow automation",
-      "Custom dashboards or portals",
-      "AI-assisted workflows",
-      "Third-party integrations",
-      "Launch and optimization support",
+      "Dashboards and portals",
+      "AI-assisted processes",
+      "System integrations",
     ],
-    highlighted: true,
+    metrics: [
+      { label: "+41% response speed" },
+      { label: "More qualified leads" },
+    ],
   },
   {
     id: "advanced",
-    label: "Custom ecosystem",
+    label: "Advanced Ecosystem",
     title: "Advanced Ecosystem",
-    bestFor: "Complex platforms, AI-enabled operations, and scalable product ecosystems",
-    investment: "Custom scope / $40k+",
-    description:
-      "A strategic engagement for companies building complex software platforms, AI-powered systems, mobile ecosystems, or deeper operational infrastructure.",
+    bestFor: "Complex platforms and AI-driven operations",
+    description: "Design and build scalable systems with advanced automation and infrastructure.",
+    investment: "$40k+",
     includes: [
-      "Custom software architecture",
-      "Advanced AI automation",
-      "Mobile and web platforms",
-      "Complex integrations",
-      "Scalable infrastructure planning",
+      "Custom architecture",
+      "AI agents and automation",
+      "Mobile + web platforms",
+      "Advanced integrations",
     ],
-    highlighted: false,
+    metrics: [
+      { label: "Scalable systems" },
+      { label: "Full operational visibility" },
+    ],
   },
 ] as const;
 
-const FACTORS = [
-  {
-    title: "Scope",
-    description: "Number of workflows, screens, features, and user roles.",
-  },
-  {
-    title: "Complexity",
-    description: "Business logic, automation depth, data structure, and approval flows.",
-  },
-  {
-    title: "Integrations",
-    description: "CRMs, payment systems, APIs, communication tools, and internal platforms.",
-  },
-  {
-    title: "Timeline",
-    description: "Delivery speed, launch priorities, and phased rollout requirements.",
-  },
-] as const;
+type ModelId = typeof MODELS[number]["id"];
 
-/* ─── Entrance helper ───────────────────────────────────────────── */
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 22 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.72, ease: [0.22, 1, 0.36, 1] as [number, number, number, number], delay },
-});
+const FACTORS = ["Scope", "Complexity", "Integrations", "Timeline"] as const;
 
-/* ─── Model card ────────────────────────────────────────────────── */
-function ModelCard({
-  model,
+/* ─── Segmented selector ────────────────────────────────────────── */
+function Selector({
   active,
-  delay,
+  onChange,
 }: {
-  model: typeof MODELS[number];
-  active: boolean;
-  delay: number;
+  active: ModelId;
+  onChange: (id: ModelId) => void;
 }) {
-  const [hovered, setHovered] = useState(false);
-  const hl = model.highlighted;
-
   return (
-    <motion.div
-      {...fadeUp(delay)}
-      animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <div
+      role="tablist"
+      aria-label="Engagement model selector"
       style={{
-        flex: hl ? "1.12" : "1",
-        minWidth: 0,
-        position: "relative",
-        borderRadius: "20px",
-        padding: hl ? "28px 24px 26px" : "24px 22px 22px",
-        background: hl
-          ? hovered
-            ? "linear-gradient(145deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.06) 100%)"
-            : "linear-gradient(145deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.04) 100%)"
-          : hovered
-            ? "linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%)"
-            : "linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        border: hl
-          ? hovered
-            ? "1px solid rgba(129,140,248,0.35)"
-            : "1px solid rgba(129,140,248,0.22)"
-          : hovered
-            ? "1px solid rgba(255,255,255,0.16)"
-            : "1px solid rgba(255,255,255,0.08)",
-        boxShadow: hl
-          ? hovered
-            ? "inset 0 1px 0 rgba(255,255,255,0.12), 0 16px 48px rgba(0,0,0,0.35), 0 0 0 1px rgba(99,102,241,0.10)"
-            : "inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 32px rgba(0,0,0,0.28), 0 0 0 1px rgba(99,102,241,0.06)"
-          : hovered
-            ? "inset 0 1px 0 rgba(255,255,255,0.10), 0 10px 32px rgba(0,0,0,0.28)"
-            : "inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 16px rgba(0,0,0,0.20)",
-        transform: hovered ? "translateY(-4px)" : "translateY(0)",
-        transition: "all 280ms cubic-bezier(0.22,1,0.36,1)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "0",
-        overflow: "hidden",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+        padding: "5px",
+        borderRadius: "14px",
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+        flexWrap: "wrap",
+        justifyContent: "center",
       }}
     >
-      {/* Top shimmer */}
-      <span aria-hidden="true" style={{
-        position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-        background: hl
-          ? "linear-gradient(to right, transparent, rgba(165,180,252,0.40), transparent)"
-          : "linear-gradient(to right, transparent, rgba(255,255,255,0.14), transparent)",
-        pointerEvents: "none",
-      }} />
-
-      {/* Ambient glow for highlighted */}
-      {hl && (
-        <div aria-hidden="true" style={{
-          position: "absolute", top: "-40%", left: "50%", transform: "translateX(-50%)",
-          width: "80%", height: "200px", borderRadius: "9999px",
-          background: "radial-gradient(ellipse, rgba(99,102,241,0.10) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
-      )}
-
-      {/* Label badge */}
-      <div style={{ marginBottom: "16px" }}>
-        <span style={{
-          display: "inline-block",
-          fontSize: "9px",
-          fontWeight: 600,
-          letterSpacing: "0.10em",
-          textTransform: "uppercase",
-          padding: "3px 10px",
-          borderRadius: "9999px",
-          color: hl ? "rgba(165,180,252,0.90)" : "rgba(129,140,248,0.60)",
-          background: hl ? "rgba(99,102,241,0.14)" : "rgba(99,102,241,0.07)",
-          border: hl ? "1px solid rgba(129,140,248,0.22)" : "1px solid rgba(129,140,248,0.10)",
-        }}>
-          {model.label}
-        </span>
-      </div>
-
-      {/* Title */}
-      <h3 style={{
-        fontSize: hl ? "20px" : "17px",
-        fontWeight: 600,
-        letterSpacing: "-0.018em",
-        lineHeight: 1.20,
-        color: "#f5f5f7",
-        margin: "0 0 6px",
-      }}>
-        {model.title}
-      </h3>
-
-      {/* Best for */}
-      <p style={{
-        fontSize: "11px",
-        fontWeight: 400,
-        lineHeight: 1.55,
-        color: "rgba(255,255,255,0.50)",
-        margin: "0 0 18px",
-        fontStyle: "italic",
-      }}>
-        {model.bestFor}
-      </p>
-
-      {/* Investment */}
-      <div style={{
-        padding: "10px 14px",
-        borderRadius: "10px",
-        background: hl ? "rgba(99,102,241,0.10)" : "rgba(255,255,255,0.04)",
-        border: hl ? "1px solid rgba(129,140,248,0.16)" : "1px solid rgba(255,255,255,0.06)",
-        marginBottom: "18px",
-      }}>
-        <span style={{
-          fontSize: hl ? "15px" : "13px",
-          fontWeight: 600,
-          letterSpacing: "-0.01em",
-          color: hl ? "rgba(200,206,255,0.95)" : "rgba(245,245,247,0.80)",
-        }}>
-          {model.investment}
-        </span>
-      </div>
-
-      {/* Description */}
-      <p style={{
-        fontSize: "12.5px",
-        fontWeight: 400,
-        lineHeight: 1.68,
-        color: "rgba(255,255,255,0.72)",
-        margin: "0 0 20px",
-      }}>
-        {model.description}
-      </p>
-
-      {/* Divider */}
-      <div style={{
-        height: "1px",
-        background: hl ? "rgba(129,140,248,0.12)" : "rgba(255,255,255,0.06)",
-        marginBottom: "16px",
-      }} />
-
-      {/* Includes */}
-      <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
-        {model.includes.map((item) => (
-          <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0, marginTop: "2px" }}>
-              <path
-                d="M2 6L4.5 8.5L10 3.5"
-                stroke={hl ? "rgba(165,180,252,0.80)" : "rgba(129,140,248,0.55)"}
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+      {MODELS.map((m) => {
+        const isActive = m.id === active;
+        return (
+          <button
+            key={m.id}
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onChange(m.id)}
+            style={{
+              position: "relative",
+              padding: "9px 20px",
+              borderRadius: "10px",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "12.5px",
+              fontWeight: isActive ? 500 : 400,
+              letterSpacing: isActive ? "-0.01em" : "0",
+              color: isActive ? "#f5f5f7" : "rgba(255,255,255,0.45)",
+              background: isActive
+                ? "linear-gradient(145deg, rgba(99,102,241,0.22) 0%, rgba(79,70,229,0.16) 100%)"
+                : "transparent",
+              boxShadow: isActive
+                ? "inset 0 1px 0 rgba(255,255,255,0.10), 0 2px 8px rgba(0,0,0,0.20), 0 0 0 1px rgba(129,140,248,0.18)"
+                : "none",
+              transition: "all 220ms cubic-bezier(0.22,1,0.36,1)",
+              whiteSpace: "nowrap",
+              outline: "none",
+            }}
+          >
+            {isActive && (
+              <motion.span
+                layoutId="selector-bg"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "10px",
+                  background: "linear-gradient(145deg, rgba(99,102,241,0.22) 0%, rgba(79,70,229,0.16) 100%)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10), 0 2px 8px rgba(0,0,0,0.20), 0 0 0 1px rgba(129,140,248,0.18)",
+                  zIndex: 0,
+                }}
+                transition={{ type: "spring", stiffness: 380, damping: 36 }}
               />
-            </svg>
-            <span style={{
+            )}
+            <span style={{ position: "relative", zIndex: 1 }}>{m.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── System lines visual ───────────────────────────────────────── */
+function SystemLines({ modelId }: { modelId: ModelId }) {
+  const colors: Record<ModelId, string> = {
+    launch: "rgba(99,102,241,",
+    growth: "rgba(129,140,248,",
+    advanced: "rgba(139,92,246,",
+  };
+  const c = colors[modelId];
+
+  return (
+    <svg
+      width="100%"
+      height="100%"
+      viewBox="0 0 400 200"
+      fill="none"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+      style={{ position: "absolute", inset: 0, opacity: 0.35 }}
+    >
+      {/* Horizontal lines */}
+      {[30, 70, 110, 150, 190].map((y, i) => (
+        <line
+          key={`h${i}`}
+          x1="0" y1={y} x2="400" y2={y}
+          stroke={`${c}0.08)`}
+          strokeWidth="0.6"
+        />
+      ))}
+      {/* Vertical lines */}
+      {[60, 140, 220, 300, 380].map((x, i) => (
+        <line
+          key={`v${i}`}
+          x1={x} y1="0" x2={x} y2="200"
+          stroke={`${c}0.06)`}
+          strokeWidth="0.6"
+        />
+      ))}
+      {/* Accent nodes */}
+      <circle cx="60" cy="70" r="2.5" fill={`${c}0.25)`} />
+      <circle cx="220" cy="110" r="3" fill={`${c}0.30)`} />
+      <circle cx="380" cy="150" r="2" fill={`${c}0.20)`} />
+      <circle cx="140" cy="30" r="2" fill={`${c}0.18)`} />
+      {/* Connecting lines */}
+      <line x1="60" y1="70" x2="220" y2="110" stroke={`${c}0.12)`} strokeWidth="0.7" />
+      <line x1="220" y1="110" x2="380" y2="150" stroke={`${c}0.10)`} strokeWidth="0.7" />
+      <line x1="140" y1="30" x2="220" y2="110" stroke={`${c}0.08)`} strokeWidth="0.7" />
+    </svg>
+  );
+}
+
+/* ─── Content panel ─────────────────────────────────────────────── */
+function ContentPanel({ model }: { model: typeof MODELS[number] }) {
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={model.id}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          position: "relative",
+          borderRadius: "22px",
+          overflow: "hidden",
+          background: "linear-gradient(145deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.02) 100%)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          border: "1px solid rgba(255,255,255,0.09)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), 0 12px 40px rgba(0,0,0,0.28)",
+        }}
+      >
+        {/* System lines background */}
+        <SystemLines modelId={model.id} />
+
+        {/* Top shimmer */}
+        <span aria-hidden="true" style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+          background: "linear-gradient(to right, transparent, rgba(165,180,252,0.22), transparent)",
+          pointerEvents: "none",
+          zIndex: 2,
+        }} />
+
+        {/* Radial glow behind content */}
+        <div aria-hidden="true" style={{
+          position: "absolute",
+          top: "-30%", left: "30%",
+          width: "500px", height: "300px",
+          borderRadius: "9999px",
+          background: model.id === "advanced"
+            ? "radial-gradient(ellipse, rgba(139,92,246,0.07) 0%, transparent 65%)"
+            : "radial-gradient(ellipse, rgba(99,102,241,0.07) 0%, transparent 65%)",
+          pointerEvents: "none",
+          zIndex: 1,
+        }} />
+
+        {/* Panel content */}
+        <div style={{
+          position: "relative",
+          zIndex: 2,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "0",
+        }}
+          className="pricing-panel-grid"
+        >
+          {/* LEFT */}
+          <div style={{
+            padding: "40px 36px 40px 40px",
+            borderRight: "1px solid rgba(255,255,255,0.06)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0",
+          }}>
+            {/* Title */}
+            <h3 style={{
+              fontSize: "clamp(22px, 2.5vw, 28px)",
+              fontWeight: 500,
+              letterSpacing: "-0.025em",
+              lineHeight: 1.15,
+              color: "#f5f5f7",
+              margin: "0 0 10px",
+            }}>
+              {model.title}
+            </h3>
+
+            {/* Best for */}
+            <p style={{
               fontSize: "12px",
               fontWeight: 400,
-              lineHeight: 1.55,
-              color: hl ? "rgba(255,255,255,0.80)" : "rgba(255,255,255,0.65)",
+              color: "rgba(255,255,255,0.45)",
+              margin: "0 0 20px",
+              fontStyle: "italic",
+              lineHeight: 1.5,
             }}>
-              {item}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </motion.div>
+              Best for: {model.bestFor}
+            </p>
+
+            {/* Description */}
+            <p style={{
+              fontSize: "14px",
+              fontWeight: 300,
+              lineHeight: 1.72,
+              color: "rgba(255,255,255,0.75)",
+              margin: "0 0 32px",
+              maxWidth: "340px",
+            }}>
+              {model.description}
+            </p>
+
+            {/* Investment */}
+            <div style={{
+              display: "inline-flex",
+              flexDirection: "column",
+              gap: "4px",
+              padding: "16px 20px",
+              borderRadius: "14px",
+              background: "rgba(99,102,241,0.08)",
+              border: "1px solid rgba(129,140,248,0.16)",
+              alignSelf: "flex-start",
+            }}>
+              <span style={{
+                fontSize: "10px",
+                fontWeight: 600,
+                letterSpacing: "0.10em",
+                textTransform: "uppercase",
+                color: "rgba(165,180,252,0.60)",
+              }}>
+                Investment
+              </span>
+              <span style={{
+                fontSize: "clamp(22px, 2.5vw, 28px)",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: "rgba(200,206,255,0.95)",
+                lineHeight: 1.1,
+              }}>
+                {model.investment}
+              </span>
+            </div>
+          </div>
+
+          {/* RIGHT */}
+          <div style={{
+            padding: "40px 40px 40px 36px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0",
+          }}>
+            {/* Includes */}
+            <div style={{ marginBottom: "32px" }}>
+              <span style={{
+                fontSize: "10px",
+                fontWeight: 600,
+                letterSpacing: "0.10em",
+                textTransform: "uppercase",
+                color: "rgba(129,140,248,0.55)",
+                display: "block",
+                marginBottom: "14px",
+              }}>
+                Includes
+              </span>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                {model.includes.map((item) => (
+                  <li key={item} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span style={{
+                      width: "5px", height: "5px", borderRadius: "50%", flexShrink: 0,
+                      background: "rgba(129,140,248,0.65)",
+                    }} />
+                    <span style={{
+                      fontSize: "13.5px",
+                      fontWeight: 400,
+                      lineHeight: 1.5,
+                      color: "rgba(255,255,255,0.80)",
+                    }}>
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Divider */}
+            <div style={{
+              height: "1px",
+              background: "rgba(255,255,255,0.06)",
+              marginBottom: "24px",
+            }} />
+
+            {/* Outcome metrics */}
+            <div>
+              <span style={{
+                fontSize: "10px",
+                fontWeight: 600,
+                letterSpacing: "0.10em",
+                textTransform: "uppercase",
+                color: "rgba(129,140,248,0.55)",
+                display: "block",
+                marginBottom: "14px",
+              }}>
+                Outcomes
+              </span>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {model.metrics.map((m) => (
+                  <div key={m.label} style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "10px 14px",
+                    borderRadius: "10px",
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+                      <path d="M2 7L5.5 10.5L12 3.5" stroke="rgba(129,140,248,0.70)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span style={{
+                      fontSize: "12.5px",
+                      fontWeight: 400,
+                      color: "rgba(255,255,255,0.75)",
+                    }}>
+                      {m.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
-/* ─── Factor item ───────────────────────────────────────────────── */
-function FactorItem({
-  factor,
-  active,
-  delay,
-}: {
-  factor: typeof FACTORS[number];
-  active: boolean;
-  delay: number;
-}) {
-  const [hovered, setHovered] = useState(false);
-
+/* ─── Factors row ───────────────────────────────────────────────── */
+function FactorsRow({ active }: { active: boolean }) {
   return (
     <motion.div
-      {...fadeUp(delay)}
-      animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        flex: "1 1 0",
-        minWidth: 0,
-        padding: "18px 18px 16px",
-        borderRadius: "14px",
-        background: hovered
-          ? "rgba(255,255,255,0.05)"
-          : "rgba(255,255,255,0.025)",
-        border: hovered
-          ? "1px solid rgba(255,255,255,0.12)"
-          : "1px solid rgba(255,255,255,0.06)",
-        boxShadow: hovered
-          ? "inset 0 1px 0 rgba(255,255,255,0.08)"
-          : "inset 0 1px 0 rgba(255,255,255,0.03)",
-        transform: hovered ? "translateY(-2px)" : "translateY(0)",
-        transition: "all 240ms cubic-bezier(0.22,1,0.36,1)",
-        position: "relative",
-        overflow: "hidden",
-      }}
+      initial={{ opacity: 0, y: 18 }}
+      animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
+      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.20 }}
+      style={{ marginTop: "48px" }}
     >
-      <span aria-hidden="true" style={{
-        position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-        background: "linear-gradient(to right, transparent, rgba(255,255,255,0.10), transparent)",
-        pointerEvents: "none",
-      }} />
-      <h4 style={{
-        fontSize: "13px",
-        fontWeight: 600,
-        letterSpacing: "-0.01em",
-        color: "#f5f5f7",
-        margin: "0 0 6px",
-      }}>
-        {factor.title}
-      </h4>
       <p style={{
-        fontSize: "12px",
-        fontWeight: 400,
-        lineHeight: 1.60,
-        color: "rgba(255,255,255,0.65)",
-        margin: 0,
+        fontSize: "11px",
+        fontWeight: 600,
+        letterSpacing: "0.10em",
+        textTransform: "uppercase",
+        color: "rgba(255,255,255,0.35)",
+        margin: "0 0 16px",
       }}>
-        {factor.description}
+        What affects the investment?
       </p>
+      <div style={{
+        display: "flex",
+        gap: "10px",
+        flexWrap: "wrap",
+      }}
+        className="pricing-factors"
+      >
+        {FACTORS.map((f) => (
+          <div key={f} style={{
+            padding: "8px 16px",
+            borderRadius: "9999px",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            fontSize: "12px",
+            fontWeight: 400,
+            color: "rgba(255,255,255,0.55)",
+            letterSpacing: "0.01em",
+          }}>
+            {f}
+          </div>
+        ))}
+      </div>
     </motion.div>
   );
 }
 
-/* ─── CTA strip ─────────────────────────────────────────────────── */
-function CTAStrip({ active }: { active: boolean }) {
-  const [primaryHov, setPrimaryHov] = useState(false);
-  const [secHov, setSecHov] = useState(false);
+/* ─── CTA block ─────────────────────────────────────────────────── */
+function CTABlock({ active }: { active: boolean }) {
+  const [hov, setHov] = useState(false);
 
   return (
     <motion.div
-      {...fadeUp(0.40)}
-      animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
+      initial={{ opacity: 0, y: 18 }}
+      animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
+      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.30 }}
       style={{
-        marginTop: "60px",
-        borderRadius: "20px",
+        marginTop: "48px",
         padding: "36px 40px",
+        borderRadius: "20px",
         background: "linear-gradient(145deg, rgba(99,102,241,0.07) 0%, rgba(139,92,246,0.04) 100%)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid rgba(129,140,248,0.14)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.22)",
+        border: "1px solid rgba(129,140,248,0.12)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.20)",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: "32px",
+        gap: "28px",
         flexWrap: "wrap",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Top shimmer */}
       <span aria-hidden="true" style={{
         position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-        background: "linear-gradient(to right, transparent, rgba(165,180,252,0.25), transparent)",
+        background: "linear-gradient(to right, transparent, rgba(165,180,252,0.22), transparent)",
         pointerEvents: "none",
       }} />
-      {/* Ambient glow */}
       <div aria-hidden="true" style={{
         position: "absolute", top: "-60%", left: "50%", transform: "translateX(-50%)",
         width: "60%", height: "200px", borderRadius: "9999px",
-        background: "radial-gradient(ellipse, rgba(99,102,241,0.08) 0%, transparent 70%)",
+        background: "radial-gradient(ellipse, rgba(99,102,241,0.07) 0%, transparent 70%)",
         pointerEvents: "none",
       }} />
 
-      {/* Text */}
-      <div style={{ flex: 1, minWidth: "240px", position: "relative", zIndex: 1 }}>
+      <div style={{ flex: 1, minWidth: "220px", position: "relative", zIndex: 1 }}>
         <h3 style={{
           fontSize: "clamp(16px, 2vw, 20px)",
           fontWeight: 600,
           letterSpacing: "-0.018em",
           lineHeight: 1.25,
           color: "#f5f5f7",
-          margin: "0 0 8px",
+          margin: "0 0 6px",
         }}>
-          Not sure which model fits your project?
+          Get a tailored estimate
         </h3>
         <p style={{
           fontSize: "13.5px",
-          fontWeight: 400,
+          fontWeight: 300,
           lineHeight: 1.65,
-          color: "rgba(255,255,255,0.72)",
+          color: "rgba(255,255,255,0.65)",
           margin: 0,
-          maxWidth: "480px",
         }}>
-          Book a free call and we&apos;ll help define the right scope, timeline, and investment range for your goals.
+          Let&apos;s define your system, scope, and investment.
         </p>
       </div>
 
-      {/* Buttons */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-        flexShrink: 0,
-        flexWrap: "wrap",
-        position: "relative",
-        zIndex: 1,
-      }}>
-        <a
-          href="#contact"
-          onMouseEnter={() => setPrimaryHov(true)}
-          onMouseLeave={() => setPrimaryHov(false)}
-          style={{
-            position: "relative",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-            padding: "13px 24px",
-            borderRadius: "12px",
-            fontSize: "13px",
-            fontWeight: 400,
-            letterSpacing: "0.02em",
-            textDecoration: "none",
-            color: "rgba(255,255,255,0.94)",
-            background: primaryHov
-              ? "linear-gradient(170deg, #818cf8 0%, #6366f1 50%, #4f46e5 100%)"
-              : "linear-gradient(170deg, #5b5ef4 0%, #4338ca 100%)",
-            boxShadow: primaryHov
-              ? "inset 0 1px 0 rgba(255,255,255,0.28), 0 6px 20px -4px rgba(79,70,229,0.55)"
-              : "inset 0 1px 0 rgba(255,255,255,0.14)",
-            border: primaryHov ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(255,255,255,0.10)",
-            transform: primaryHov ? "scale(1.02)" : "scale(1)",
-            transition: "all 260ms cubic-bezier(0.22,1,0.36,1)",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <span aria-hidden="true" style={{
-            position: "absolute", top: 0, bottom: 0, width: "60%",
-            left: primaryHov ? "120%" : "-60%",
-            transform: "skewX(-12deg)",
-            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%)",
-            transition: "left 500ms cubic-bezier(0.22,1,0.36,1)",
-            pointerEvents: "none",
-          }} />
-          Get a tailored estimate
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"
-            style={{ transform: primaryHov ? "translateX(2px)" : "translateX(0)", transition: "transform 200ms", flexShrink: 0 }}>
-            <path d="M3 7H11M11 7L7.5 3.5M11 7L7.5 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
-
-        <a
-          href="#work"
-          onMouseEnter={() => setSecHov(true)}
-          onMouseLeave={() => setSecHov(false)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "4px",
-            fontSize: "13px",
-            fontWeight: 400,
-            textDecoration: "none",
-            color: secHov ? "rgba(165,180,252,0.90)" : "rgba(255,255,255,0.55)",
-            transition: "color 220ms ease",
-            whiteSpace: "nowrap",
-          }}
-        >
-          View our work
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"
-            style={{ transform: secHov ? "translateX(2px)" : "translateX(0)", transition: "transform 200ms" }}>
-            <path d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
-      </div>
+      <a
+        href="#contact"
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+        style={{
+          position: "relative",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          padding: "13px 26px",
+          borderRadius: "12px",
+          fontSize: "13px",
+          fontWeight: 400,
+          letterSpacing: "0.02em",
+          textDecoration: "none",
+          color: "rgba(255,255,255,0.94)",
+          background: hov
+            ? "linear-gradient(170deg, #818cf8 0%, #6366f1 50%, #4f46e5 100%)"
+            : "linear-gradient(170deg, #5b5ef4 0%, #4338ca 100%)",
+          boxShadow: hov
+            ? "inset 0 1px 0 rgba(255,255,255,0.28), 0 6px 20px -4px rgba(79,70,229,0.55)"
+            : "inset 0 1px 0 rgba(255,255,255,0.14)",
+          border: hov ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(255,255,255,0.10)",
+          transform: hov ? "scale(1.02)" : "scale(1)",
+          transition: "all 260ms cubic-bezier(0.22,1,0.36,1)",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          flexShrink: 0,
+          zIndex: 1,
+        }}
+      >
+        <span aria-hidden="true" style={{
+          position: "absolute", top: 0, bottom: 0, width: "60%",
+          left: hov ? "120%" : "-60%",
+          transform: "skewX(-12deg)",
+          background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%)",
+          transition: "left 500ms cubic-bezier(0.22,1,0.36,1)",
+          pointerEvents: "none",
+        }} />
+        Book a free call
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"
+          style={{ transform: hov ? "translateX(2px)" : "translateX(0)", transition: "transform 200ms", flexShrink: 0 }}>
+          <path d="M3 7H11M11 7L7.5 3.5M11 7L7.5 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </a>
     </motion.div>
   );
 }
 
 /* ─── Main export ───────────────────────────────────────────────── */
 export function Pricing() {
+  const [activeId, setActiveId] = useState<ModelId>("growth");
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const modelsRef = useRef<HTMLDivElement>(null);
-  const factorsRef = useRef<HTMLDivElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   const headerInView = useInView(headerRef, { once: true, margin: "-60px" });
-  const modelsInView = useInView(modelsRef, { once: true, margin: "-60px" });
-  const factorsInView = useInView(factorsRef, { once: true, margin: "-60px" });
-  const ctaInView = useInView(ctaRef, { once: true, margin: "-60px" });
+  const bodyInView = useInView(bodyRef, { once: true, margin: "-60px" });
+
+  const activeModel = MODELS.find((m) => m.id === activeId)!;
 
   return (
     <section
@@ -496,25 +591,25 @@ export function Pricing() {
       aria-label="Investment and Engagement Models"
       style={{ padding: "80px 20px 100px", position: "relative", overflow: "hidden" }}
     >
-      {/* Background atmosphere */}
+      {/* Background */}
       <div aria-hidden="true" style={{
         position: "absolute", inset: 0,
-        background: "linear-gradient(180deg, rgba(5,5,5,0) 0%, rgba(6,6,16,0.50) 50%, rgba(5,5,5,0) 100%)",
+        background: "linear-gradient(180deg, rgba(5,5,5,0) 0%, rgba(6,6,18,0.55) 50%, rgba(5,5,5,0) 100%)",
         pointerEvents: "none", zIndex: 0,
       }} />
       <div aria-hidden="true" style={{
         position: "absolute",
-        left: "50%", top: "40%",
+        left: "50%", top: "45%",
         transform: "translate(-50%, -50%)",
-        width: "800px", height: "400px",
+        width: "900px", height: "500px",
         borderRadius: "9999px",
-        background: "radial-gradient(ellipse, rgba(99,102,241,0.05) 0%, transparent 65%)",
+        background: "radial-gradient(ellipse, rgba(99,102,241,0.045) 0%, transparent 65%)",
         pointerEvents: "none", zIndex: 0,
       }} />
 
       <div style={{ maxWidth: "1050px", margin: "0 auto", position: "relative", zIndex: 1 }}>
 
-        {/* ── Section header ── */}
+        {/* ── Header ── */}
         <motion.div
           ref={headerRef}
           initial={{ opacity: 0, y: 22 }}
@@ -522,14 +617,13 @@ export function Pricing() {
           transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
           style={{
             textAlign: "center",
-            maxWidth: "700px",
-            margin: "0 auto 60px",
+            maxWidth: "640px",
+            margin: "0 auto 48px",
             display: "flex",
             flexDirection: "column",
             gap: "14px",
           }}
         >
-          {/* Eyebrow */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
             <span style={{ display: "inline-block", width: "20px", height: "1px", background: "rgba(129,140,248,0.45)" }} />
             <span style={{
@@ -542,7 +636,6 @@ export function Pricing() {
             <span style={{ display: "inline-block", width: "20px", height: "1px", background: "rgba(129,140,248,0.45)" }} />
           </div>
 
-          {/* Headline */}
           <h2 style={{
             fontSize: "clamp(26px, 3.5vw, 40px)",
             fontWeight: 500,
@@ -551,114 +644,71 @@ export function Pricing() {
             color: "#f0f0f5",
             margin: 0,
           }}>
-            Flexible engagement models for AI systems,<br />software, and mobile apps
+            Structured investment for<br />custom AI systems
           </h2>
 
-          {/* Subheadline */}
           <p style={{
             fontSize: "clamp(14px, 1.4vw, 16px)",
             fontWeight: 300,
             lineHeight: 1.72,
             color: "rgba(255,255,255,0.72)",
             margin: "0 auto",
-            maxWidth: "580px",
+            maxWidth: "480px",
           }}>
-            Every project is tailored to your goals, but our engagement models help you understand the level of investment, scope, and support typically required to build high-quality digital systems.
+            Every project is tailored, but our engagement models help define scope, complexity, and expected investment.
           </p>
         </motion.div>
 
-        {/* ── Engagement models ── */}
-        <div
-          ref={modelsRef}
-          style={{
-            display: "flex",
-            gap: "16px",
-            alignItems: "stretch",
-            flexWrap: "wrap",
-          }}
-          className="pricing-models"
+        {/* ── Selector ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={headerInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
+          style={{ display: "flex", justifyContent: "center", marginBottom: "28px" }}
         >
-          {MODELS.map((model, i) => (
-            <ModelCard
-              key={model.id}
-              model={model}
-              active={modelsInView}
-              delay={0.08 + i * 0.10}
-            />
-          ))}
-        </div>
+          <Selector active={activeId} onChange={setActiveId} />
+        </motion.div>
 
-        {/* ── What affects investment ── */}
-        <div ref={factorsRef} style={{ marginTop: "56px" }}>
-          <motion.div
-            {...fadeUp(0.06)}
-            animate={factorsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
-            style={{ marginBottom: "24px" }}
-          >
-            <h3 style={{
-              fontSize: "clamp(16px, 2vw, 20px)",
-              fontWeight: 500,
-              letterSpacing: "-0.018em",
-              color: "#f0f0f5",
-              margin: "0 0 6px",
-            }}>
-              What affects the investment?
-            </h3>
-            <p style={{
-              fontSize: "13px",
-              fontWeight: 400,
-              lineHeight: 1.60,
-              color: "rgba(255,255,255,0.55)",
-              margin: 0,
-            }}>
-              These are the primary variables that shape the scope and cost of any engagement.
-            </p>
-          </motion.div>
+        {/* ── Content panel ── */}
+        <motion.div
+          ref={bodyRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={bodyInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.70, ease: [0.22, 1, 0.36, 1], delay: 0.18 }}
+        >
+          <ContentPanel model={activeModel} />
+        </motion.div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              flexWrap: "wrap",
-            }}
-            className="pricing-factors"
-          >
-            {FACTORS.map((factor, i) => (
-              <FactorItem
-                key={factor.title}
-                factor={factor}
-                active={factorsInView}
-                delay={0.10 + i * 0.08}
-              />
-            ))}
-          </div>
-        </div>
+        {/* ── Factors ── */}
+        <FactorsRow active={bodyInView} />
 
-        {/* ── CTA strip ── */}
-        <div ref={ctaRef}>
-          <CTAStrip active={ctaInView} />
-        </div>
+        {/* ── CTA ── */}
+        <CTABlock active={bodyInView} />
       </div>
 
-      {/* Responsive styles */}
+      {/* Responsive */}
       <style>{`
         @media (max-width: 768px) {
-          .pricing-models {
-            flex-direction: column !important;
+          .pricing-panel-grid {
+            grid-template-columns: 1fr !important;
           }
-          .pricing-models > * {
-            flex: 1 1 auto !important;
+          .pricing-panel-grid > *:first-child {
+            border-right: none !important;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 28px 24px !important;
           }
-          .pricing-factors {
-            flex-direction: column !important;
+          .pricing-panel-grid > *:last-child {
+            padding: 24px 24px 28px !important;
           }
         }
-        @media (min-width: 769px) and (max-width: 1024px) {
-          .pricing-models {
-            flex-wrap: wrap !important;
+        @media (max-width: 540px) {
+          [role="tablist"] {
+            flex-direction: column !important;
+            width: 100% !important;
           }
-          .pricing-models > * {
-            flex: 1 1 calc(50% - 8px) !important;
+          [role="tablist"] button {
+            width: 100% !important;
+            text-align: center !important;
           }
         }
       `}</style>
