@@ -391,53 +391,6 @@ export function Pricing() {
           </div>
         </div>
 
-        {/* ── Footer row ── */}
-        <motion.div
-          ref={footerRef}
-          initial={{ opacity: 0, y: 16 }}
-          animate={footerInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
-          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.18 }}
-          style={{
-            marginTop: "48px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "24px",
-            flexWrap: "wrap",
-          }}
-        >
-          {/* Factors */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-            <span style={{
-              fontSize: "11px",
-              fontWeight: 500,
-              letterSpacing: "0.04em",
-              color: "rgba(255,255,255,0.30)",
-              whiteSpace: "nowrap",
-            }}>
-              What defines the scope
-            </span>
-            <span style={{ width: "1px", height: "12px", background: "rgba(255,255,255,0.10)", flexShrink: 0 }} />
-            {FACTORS.map((f, i) => (
-              <span key={f} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <span style={{
-                  fontSize: "12px",
-                  fontWeight: 400,
-                  color: "rgba(255,255,255,0.40)",
-                  letterSpacing: "0.01em",
-                }}>
-                  {f}
-                </span>
-                {i < FACTORS.length - 1 && (
-                  <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
-                )}
-              </span>
-            ))}
-          </div>
-
-          {/* CTA link */}
-          <CTALink />
-        </motion.div>
       </div>
 
       {/* Responsive */}
